@@ -1,3 +1,3 @@
-# Yattecast
+# gaikiyoku.fm
 
-https://r7kamura.github.io/yattecast/
+https://gaikiyokufm.github.io/
