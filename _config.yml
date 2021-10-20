@@ -1,16 +1,14 @@
 actors:
   alice:
-    image_url: /images/actors/alice.png
-    name: alice
-    url: http://sns.example.com/alice
+    image_url: /images/actors/hoshikawa.jpg
+    name: hoshikawa
   bob:
-    image_url: /images/actors/bob.png
-    name: bob
-    url: http://sns.example.com/bob
-author: alice
-description: Example description
-description_long: Example long description
-email: info@example.com
+    image_url: /images/actors/hidetake.jpg
+    name: hidetake
+author: hidetake
+description: 外気浴であれこれ話す
+description_long: 外気浴であれこれ話す
+email: info@gaikiyoku.fm
 exclude:
   - docker
   - docker-compose.yml
