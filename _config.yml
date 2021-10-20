@@ -1,9 +1,9 @@
 actors:
   alice:
-    image_url: /images/actors/hoshikawa.jpg
+    image_url: /images/actors/hoshikawa.png
     name: hoshikawa
   bob:
-    image_url: /images/actors/hidetake.jpg
+    image_url: /images/actors/hidetake.png
     name: hidetake
 author: hidetake
 description: 外気浴であれこれ話す
