@@ -1,3 +1,3 @@
 # gaikiyoku.fm
 
-https://gaikiyokufm.github.io/
+https://gaikiyoku.fm
