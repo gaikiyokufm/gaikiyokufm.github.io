@@ -6,8 +6,8 @@ actors:
     image_url: /images/actors/hidetake.png
     name: hidetake
 author: hidetake
-description: 外気浴であれこれ話す
-description_long: 外気浴であれこれ話す
+description: 外気浴しながらあれこれ話す
+description_long: 外気浴しながらあれこれ話す
 email: info@gaikiyoku.fm
 exclude:
   - docker
@@ -18,7 +18,7 @@ exclude:
   - README.md
   - vendor
 google_analytics:
-hashtag: examplehashtag
+hashtag: gaikiyokufm
 itunes_podcast_url:
 keywords: comma,separated,keywords
 language: ja
