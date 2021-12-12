@@ -9,7 +9,7 @@
     <description>{{ site.description | xml_escape }}</description>
     <media:thumbnail url="{{ site.github.url }}/images/artwork-240.jpg"/>
     <media:keywords>{{ site.keywords }}</media:keywords>
-    <media:category scheme="http://www.itunes.com/dtds/podcast-1.0.dtd">Technology</media:category>
+    <media:category scheme="http://www.itunes.com/dtds/podcast-1.0.dtd">Society &amp; Culture</media:category>
     <language>{{ site.language }}</language>
     <itunes:subtitle>{{ site.description | xml_escape }}</itunes:subtitle>
     <itunes:author>{{ site.author }}</itunes:author>
@@ -20,7 +20,9 @@
       <itunes:email>{{ site.email }}</itunes:email>
     </itunes:owner>
     <itunes:image href="{{ site.github.url }}/images/artwork.jpg" />
-    <itunes:category text="Technology"/>
+    <itunes:category text="Society &amp; Culture">
+      <itunes:category text="Personal Journals"/>
+    </itunes:category>
     <itunes:explicit>no</itunes:explicit>
     {% for post in site.posts %}
       <item>
