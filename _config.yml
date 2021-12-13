@@ -19,7 +19,7 @@ exclude:
   - vendor
 google_analytics:
 hashtag: gaikiyokufm
-itunes_podcast_url:
+itunes_podcast_url: https://podcasts.apple.com/us/podcast/gaikiyoku-fm/id1598934840
 keywords: sauna,money,tech,technology,gadget
 language: ja
 markdown: kramdown
