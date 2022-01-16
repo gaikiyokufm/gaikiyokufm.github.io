@@ -45,8 +45,13 @@
             <div class="article-actors">
               {% for actor_id in page.actor_ids %}
                 {% assign actor = site.actors[actor_id] %}
+                {% if actor.image_url contains 'gravatar' %}
+                  {% assign img_url = actor.image_url %}
+                {% else %}
+                  {% assign img_url = actor.image_url | prepend:site.github.url %}
+                {% endif %}
                 <a href="{{ actor.url }}" class="actor" target="_blank">
-                  <img src="{{ actor.image_url | prepend:site.github.url }}" alt="{{ actor.name }}" class="actor-image" width="72" height="72">
+                  <img src="{{ img_url }}" alt="{{ actor.name }}" class="actor-image" width="72" height="72">
                   <br>
                   {{ actor.name }}
                 </a>
