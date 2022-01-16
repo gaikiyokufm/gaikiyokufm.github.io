@@ -3,7 +3,7 @@ actors:
     image_url: /images/actors/hoshikawa.png
     name: hoshikawa
   hidetake:
-    image_url: /images/actors/hidetake.png
+    image_url: https://www.gravatar.com/avatar/c50eca9d63f3a6179ab14645cf2dc1ea
     name: hidetake
 author: hidetake
 description: 外気浴しながらあれこれ話す
