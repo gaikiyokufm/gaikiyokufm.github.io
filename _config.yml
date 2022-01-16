@@ -1,6 +1,6 @@
 actors:
   hoshikawa:
-    image_url: /images/actors/hoshikawa.png
+    image_url: https://www.gravatar.com/avatar/4228f869e90f20d04ce6d4005286c623?s=300
     name: hoshikawa
   hidetake:
     image_url: https://www.gravatar.com/avatar/c50eca9d63f3a6179ab14645cf2dc1ea?s=300
