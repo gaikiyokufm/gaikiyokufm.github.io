@@ -31,3 +31,5 @@ timezone: Asia/Tokyo
 title: gaikiyoku.fm
 url: https://gaikiyoku.fm
 domain: gaikiyoku.fm
+plugins:
+  - jekyll-sitemap
