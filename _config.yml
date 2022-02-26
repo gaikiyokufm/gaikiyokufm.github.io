@@ -8,7 +8,7 @@ actors:
 author: hidetake
 description: 外気浴しながらあれこれ話す
 description_long: 外気浴しながらあれこれ話す
-email: shidetake+gaikiyokufm@gmail.com
+email: hello@gaikiyoku.fm
 exclude:
   - docker
   - docker-compose.yml
