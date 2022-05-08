@@ -9,9 +9,9 @@ DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//")
 FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}')
 
 help:
-	@echo make preprocess ARG=hoge.wav: preprocess for hoge.wav
-	@echo make mp3 ARG=hoge.wav       : convert wav to mp3
-	@echo make post                   : create post for new mp3
+	@echo make split ARG=hoge.wav: split stereo to mono
+	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
+	@echo make post              : create post for new mp3
 
 post:
 	@cp _posts/template.md $(NEW_FILENAME)
@@ -22,7 +22,7 @@ post:
 	@sed -i '' -e 's/FILESIZE/$(FILESIZE)/g' $(NEW_FILENAME)
 	nvim $(NEW_FILENAME)
 
-preprocess:
+split:
 	@sox ${ARG} -c 1 ${ARG:.wav=}-left.wav remix 1
 	@sox ${ARG} -c 1 ${ARG:.wav=}-right.wav remix 2
 
