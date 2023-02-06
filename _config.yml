@@ -34,3 +34,7 @@ url: https://gaikiyoku.fm
 domain: gaikiyoku.fm
 plugins:
   - jekyll-sitemap
+algolia:
+  application_id: KGAVPIMSEP
+  index_name: gaikiyokufm
+  search_only_api_key: 308a1106698310de9d394a3eccf94563
