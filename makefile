@@ -7,6 +7,8 @@ help:
 	@echo make split ARG=hoge.wav: split stereo to mono
 	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
 	@echo make post              : create post for new mp3
+	@echo make local             : local test
+	@echo make algolia           : create algolia index
 
 post:
 	$(eval TODAY := $(shell date +%Y-%m-%d))
@@ -28,3 +30,9 @@ split:
 
 mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(EP_NUM_PAD).mp3
+
+local:
+	bundle exec jekyll serve
+
+algolia:
+	bundle exec jekyll algolia
