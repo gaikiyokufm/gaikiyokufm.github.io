@@ -36,4 +36,17 @@ local:
 	bundle exec jekyll serve
 
 algolia:
+	for i in audio/transcript/*.json; do\
+		echo "\n## 文字起こし\n" >> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.mp3\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
+		cat $${i} |\
+			jq -rc '[.segments[] | {seek, text}] | group_by(.seek) | .[] |\
+					    reduce .[] as $$seek ({"seek": .[0].seek, "text": ""}; .text += $$seek.text + "\n") |\
+							(.seek/100/60/60%24|tostring) + ":" + (.seek/100/60%60|tostring) + ":" + (.seek/100%60|tostring),.text'\
+			>> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.mp3\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
+	done
 	bundle exec jekyll algolia
+	git co _posts/20*.md
+
+whisper:
+	$(eval NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1))
+	whisper --model large --language Japanese --output_dir audio/transcript $(NEWEST_AUDIO_FILE)
