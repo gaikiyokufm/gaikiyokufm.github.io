@@ -17,12 +17,14 @@ post:
 	$(eval AUDIO_FILENAME := audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3)
 	$(eval DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//"))
 	$(eval FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}'))
-	@cp _posts/template.md $(NEW_FILENAME)
+	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{print $$4}'))
+	@cp template.md $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM_PAD/$(NEXT_EP_NUM_PAD)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM/$(NEXT_EP_NUM)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/DATE/$(TODAY)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/DURATION/$(DURATION)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/FILESIZE/$(FILESIZE)/g' $(NEW_FILENAME)
+	@sed -i '' -e 's/TITLE/$(TITLE)/g' $(NEW_FILENAME)
 	nvim $(NEW_FILENAME)
 
 split:
