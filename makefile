@@ -3,12 +3,15 @@ local_url = "localhost"
 NEWEST_EP_NUM := $(shell ls -1 _posts/[0-9]* | tail -1 | awk -F- '{print $$4}' | awk -F. '{print $$1}')
 NEXT_EP_NUM := $(shell expr $(NEWEST_EP_NUM) + 1)
 NEXT_EP_NUM_PAD := $(shell printf "%04d" $(NEXT_EP_NUM))
+NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1)
 
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
 	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
 	@echo make post              : create post for new mp3
 	@echo make local             : local test
+	@echo make twitter           : create twitter post
+	@echo make whisper           : create transcript
 	@echo make algolia           : create algolia index
 
 post:
@@ -50,5 +53,12 @@ algolia:
 	git co _posts/20*.md
 
 whisper:
-	$(eval NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1))
 	whisper --model large --language Japanese --output_dir audio/transcript $(NEWEST_AUDIO_FILE)
+
+twitter:
+	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{print $$4}'))
+	@echo $(NEWEST_EP_NUM). $(TITLE)
+	@echo
+	@echo https://gaikiyoku.fm/episode/$(NEWEST_EP_NUM)
+	@echo -n \#gaikiyokufm
+
