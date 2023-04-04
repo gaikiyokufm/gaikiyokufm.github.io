@@ -56,7 +56,7 @@ whisper:
 	whisper --model large --language Japanese --output_dir audio/transcript $(NEWEST_AUDIO_FILE)
 
 twitter:
-	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{print $$4}'))
+	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
 	@echo $(NEWEST_EP_NUM). $(TITLE)
 	@echo
 	@echo https://gaikiyoku.fm/episode/$(NEWEST_EP_NUM)
