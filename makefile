@@ -38,6 +38,7 @@ mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 
 local:
+	open http://localhost:4000/
 	bundle exec jekyll serve
 
 algolia:
