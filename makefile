@@ -39,7 +39,7 @@ mp3:
 
 local:
 	open http://localhost:4000/
-	bundle exec jekyll serve
+	bundle exec jekyll serve -I
 
 algolia:
 	for i in audio/transcript/*.json; do\
