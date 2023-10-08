@@ -1,7 +1,7 @@
 .header {
   background-image: url(../images/bg.jpg);
   background-size: cover;
-  background-position: 25% 90%;
+  background-position: 0% 50%;
 
   &-description {
     color: $color-text-light-secondary;
@@ -27,7 +27,7 @@
   &-overlay {
     background-color: rgba(0, 0, 0, 0.1);
     height: 100%;
-    padding-bottom: 180px;
-    padding-top: 180px;
+    padding-bottom: 96px;
+    padding-top: 96px;
   }
 }
