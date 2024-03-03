@@ -20,7 +20,7 @@ post:
 	$(eval AUDIO_FILENAME := audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3)
 	$(eval DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//"))
 	$(eval FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}'))
-	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{print $$4}'))
+	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{for(i = 4; i <= NF - 1; i++) printf "%s ", $$i; print $$NF}'))
 	@cp template.md $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM_PAD/$(NEXT_EP_NUM_PAD)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM/$(NEXT_EP_NUM)/g' $(NEW_FILENAME)
