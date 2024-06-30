@@ -4,6 +4,7 @@ NEWEST_EP_NUM := $(shell ls -1 _posts/[0-9]* | tail -1 | awk -F- '{print $$4}' |
 NEXT_EP_NUM := $(shell expr $(NEWEST_EP_NUM) + 1)
 NEXT_EP_NUM_PAD := $(shell printf "%04d" $(NEXT_EP_NUM))
 NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1)
+NEWEST_POST := $(shell ls -1 _posts/[0-9]* | tail -1)
 
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
@@ -60,6 +61,7 @@ whisper:
 twitter:
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
 	@echo $(NEWEST_EP_NUM). $(TITLE)
+	@cat $(NEWEST_POST) | grep description | awk '{sub(/description: /, ""); print}'
 	@echo
 	@echo https://gaikiyoku.fm/episode/$(NEWEST_EP_NUM)
 	@echo -n \#gaikiyokufm
