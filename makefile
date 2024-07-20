@@ -61,6 +61,7 @@ whisper:
 twitter:
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
 	@echo $(NEWEST_EP_NUM). $(TITLE)
+	@echo
 	@cat $(NEWEST_POST) | grep description | awk '{sub(/description: /, ""); print}'
 	@echo
 	@echo https://gaikiyoku.fm/episode/$(NEWEST_EP_NUM)
