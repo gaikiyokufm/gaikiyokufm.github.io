@@ -13,4 +13,6 @@ title: NEXT_EP_NUM. TITLE
 
 ## 関連リンク
 
-- [example](https://example.com)
+[お便り](https://forms.gle/qherFuKhZCPWPRcL6)お待ちしています。
+ご希望の方にはオリジナルタオルをお送りします。
+
