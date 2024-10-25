@@ -22,7 +22,7 @@ post:
 	$(eval DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//"))
 	$(eval FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}'))
 	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{for(i = 4; i <= NF - 1; i++) printf "%s ", $$i; print $$NF}'))
-	$(eval DESCRIPTION := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep comment | head -1 | awk '{print $$3}'))
+	$(eval DESCRIPTION := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep comment | head -1 | sed 's/^[[:space:]]*comment[[:space:]]*:[[:space:]]*//1'))
 	@cp template.md $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM_PAD/$(NEXT_EP_NUM_PAD)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM/$(NEXT_EP_NUM)/g' $(NEW_FILENAME)
@@ -39,7 +39,7 @@ split:
 
 mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
-	eyeD3 --add-image images/artwork.jpg:FRONT_COVER --title "$(NEXT_EP_NUM). " --album "gaikiyoku.fm" audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
+	eyeD3 --add-image images/artwork.jpg:FRONT_COVER --title "$(NEXT_EP_NUM). " --comment "//について話しました。" --album "gaikiyoku.fm" audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 
 local:
 	open http://localhost:4000/
