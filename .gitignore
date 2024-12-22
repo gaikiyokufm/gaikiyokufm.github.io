@@ -3,3 +3,4 @@
 *.aup3
 *.wav
 audio/material
+.jekyll-metadata
