@@ -5,6 +5,8 @@ NEXT_EP_NUM := $(shell expr $(NEWEST_EP_NUM) + 1)
 NEXT_EP_NUM_PAD := $(shell printf "%04d" $(NEXT_EP_NUM))
 NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1)
 NEWEST_POST := $(shell ls -1 _posts/[0-9]* | tail -1)
+AUDIO_FILES := $(wildcard audio/gaikiyokufm*.mp3)
+TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.mp3.json,$(AUDIO_FILES))
 
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
@@ -57,8 +59,10 @@ algolia:
 	bundle exec jekyll algolia
 	git co _posts/20*.md
 
-whisper:
-	whisper --model large --language Japanese --output_dir audio/transcript $(NEWEST_AUDIO_FILE)
+whisper: $(TRANSCRIPT_FILES)
+
+audio/transcript/%.mp3.json: audio/%.mp3
+	whisper --model large --language Japanese --output_dir audio/transcript $<
 
 twitter:
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
