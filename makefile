@@ -6,7 +6,7 @@ NEXT_EP_NUM_PAD := $(shell printf "%04d" $(NEXT_EP_NUM))
 NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1)
 NEWEST_POST := $(shell ls -1 _posts/[0-9]* | tail -1)
 AUDIO_FILES := $(wildcard audio/gaikiyokufm*.mp3)
-TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.mp3.json,$(AUDIO_FILES))
+TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.json,$(AUDIO_FILES))
 
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
@@ -49,19 +49,19 @@ local:
 
 algolia:
 	for i in audio/transcript/*.json; do\
-		echo "\n## 文字起こし\n" >> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.mp3\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
+		echo "\n## 文字起こし\n" >> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
 		cat $${i} |\
 			jq -rc '[.segments[] | {seek, text}] | group_by(.seek) | .[] |\
 					    reduce .[] as $$seek ({"seek": .[0].seek, "text": ""}; .text += $$seek.text + "\n") |\
 							(.seek/100/60/60%24|tostring) + ":" + (.seek/100/60%60|tostring) + ":" + (.seek/100%60|tostring),.text'\
-			>> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.mp3\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
+			>> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
 	done
 	bundle exec jekyll algolia
 	git co _posts/20*.md
 
 whisper: $(TRANSCRIPT_FILES)
 
-audio/transcript/%.mp3.json: audio/%.mp3
+audio/transcript/%.json: audio/%.mp3
 	whisper --model large --language Japanese --output_dir audio/transcript $<
 
 twitter:
