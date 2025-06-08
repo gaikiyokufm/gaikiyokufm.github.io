@@ -24,7 +24,7 @@ post:
 	$(eval DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//"))
 	$(eval FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}'))
 	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{for(i = 4; i <= NF - 1; i++) printf "%s ", $$i; print $$NF}'))
-	$(eval DESCRIPTION := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep comment | head -1 | sed 's/^[[:space:]]*comment[[:space:]]*:[[:space:]]*//1'))
+	$(eval DESCRIPTION := $(shell ffprobe -v quiet -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 $(AUDIO_FILENAME)))
 	@cp template.md $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM_PAD/$(NEXT_EP_NUM_PAD)/g' $(NEW_FILENAME)
 	@sed -i '' -e 's/NEXT_EP_NUM/$(NEXT_EP_NUM)/g' $(NEW_FILENAME)
