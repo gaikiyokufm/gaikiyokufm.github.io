@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# �X�e�[�W���O����Ă���}�[�N�_�E���t�@�C�����擾
+# ステージングされているマークダウンファイルを取得
 files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.md$')
 
-# �t�@�C�������݂��Ȃ��ꍇ�A�I��
+# ファイルが存在しない場合、終了
 if [ -z "$files" ]; then
   exit 0
 fi
 
-# ���K�\���� [] ���� | ���܂܂�Ă��邩�`�F�b�N
+# 正規表現で [] 内に | が含まれているかチェック
 for file in $files; do
   if grep -e "\[.*|.*\]" "$file"; then
     echo "Error: $file contains '|' within square brackets []"
@@ -16,5 +16,5 @@ for file in $files; do
   fi
 done
 
-# �`�F�b�N���ʂ�΃R�~�b�g�𑱍s
+# チェックが通ればコミットを続行
 exit 0
