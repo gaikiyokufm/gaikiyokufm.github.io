@@ -1,0 +1,43 @@
+#!/bin/bash
+
+set -euo pipefail
+
+MSG_FILE="$1"
+COMMIT_SOURCE="${2-}"
+SHA1="${3-}"
+
+# 明示メッセージ(-m)やマージ等では変更しない（prepare-commit-msgの仕様） [web:12]
+case "$COMMIT_SOURCE" in
+  message|merge|squash|commit|tag) exit 0 ;;
+esac
+
+# ステージの新規追加(A)ファイルから gaikiyokufm-00NN.mp3 を抽出 [web:26][web:38]
+added_files="$(git diff --cached --name-status | awk '$1=="A"{print $2}')" || true
+
+target=""
+while IFS= read -r p; do
+  # 正確に一致（パス区切り考慮: 末尾のファイル名を評価）
+  base="${p##*/}"
+  if printf '%s\n' "$base" | grep -Eq '^gaikiyokufm-0*[0-9]+\.mp3$'; then
+    target="$base"
+    break
+  fi
+done <<EOF
+$added_files
+EOF
+
+[ -z "$target" ] && exit 0
+
+# 連番を取り出し、先頭ゼロを除去（0061 -> 61） [web:28][web:31][web:25]
+num_raw="$(printf '%s' "$target" | sed -E 's/^gaikiyokufm-0*([0-9]+)\.mp3$/\1/')"  # 61
+[ -z "$num_raw" ] && exit 0
+
+# 既に ep. N が先頭にある場合は重複挿入しない
+if grep -qE "^ep\. ${num_raw}(\>|$|\s)" "$MSG_FILE"; then
+  exit 0
+fi
+
+# 先頭に "ep. N" を挿入（空メッセージでもOK） [web:12][web:1]
+{ printf 'ep. %s\n\n' "$num_raw"; cat "$MSG_FILE"; } > "${MSG_FILE}.tmp" && mv "${MSG_FILE}.tmp" "$MSG_FILE"
+
+exit 0
