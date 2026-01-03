@@ -10,7 +10,7 @@ Analyzes a podcast transcript and automatically generates chapters, episode titl
 ## Usage
 
 ```
-/podcast-metadata <episode-number>
+/add-metadata <episode-number>
 ```
 
 ## Arguments
@@ -356,7 +356,7 @@ Handle these error scenarios gracefully:
    - Suggest verifying episode number
 
 2. **Invalid Episode Number**
-   - Show example: `/podcast-metadata 65`
+   - Show example: `/add-metadata 65`
 
 3. **ffmpeg/ffprobe Not Found**
    - Show install command for macOS: `brew install ffmpeg`
