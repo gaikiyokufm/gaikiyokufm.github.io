@@ -38,6 +38,7 @@ def main():
     tag.album = "gaikiyoku.fm"
     tag.artist = "gaikiyoku.fm"
     tag.comments.set(summary)
+    tag.lyrics.set(summary)  # Add lyrics for Forecast duration checkbox
 
     # Clear existing chapters
     for chap in list(tag.chapters):

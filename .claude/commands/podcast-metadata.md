@@ -25,6 +25,12 @@ The command uses the following gaikiyoku.fm-specific paths:
 
 When this command is invoked, follow these steps carefully:
 
+**⚠️ CRITICAL: DO NOT CREATE ANY TEMPORARY OR INTERMEDIATE FILES**
+- All operations MUST be in-place on the original MP3 file
+- NEVER create files like "temp.mp3", "{episode}_temp.mp3", or any backup files
+- Use Read tool for transcript access (no file copying)
+- Use eyeD3 Python API for in-place MP3 editing (no ffmpeg for writing)
+
 ### 0. Project Configuration
 
 Define gaikiyoku.fm-specific settings (these are hardcoded for this project):
@@ -117,21 +123,36 @@ If no reference episodes found, show warning:
 
 ### 6. Read Transcript
 
-Read the JSON transcript file and parse both text and segments:
-```bash
-# Extract full transcript text
-transcript_text=$(jq -r '.text' "{json_file}")
+Use the Python script to read and process the transcript JSON file:
 
-# Extract segments with timestamps (sample every 10th segment to keep size manageable)
-segments=$(jq -r '.segments | to_entries | map(select(.key % 10 == 0)) | map(.value) | .[] | "\(.start)s-\(.end)s: \(.text)"' "{json_file}")
+```bash
+python3 .claude/scripts/read_transcript.py "{json_file}"
 ```
 
-The transcript has:
-- `text` field: Full transcript as plain text
-- `segments` array: Individual utterances with precise start/end timestamps
+The script outputs JSON with:
+- `full_text`: Complete transcript text
+- `sampled_segments`: Every 10th segment with start/end times and text
+- `total_segments`: Total number of segments
 
-If parsing fails, show error:
-"Failed to parse transcript JSON. Please verify file format."
+Parse the JSON output:
+```bash
+transcript_json=$(python3 .claude/scripts/read_transcript.py "{json_file}")
+```
+
+Extract data from the JSON output for use in metadata generation:
+- Full text for overall content analysis
+- Sampled segments with timestamps for chapter boundary detection
+- Total segment count for reference
+
+If the script fails, show error:
+"Failed to read transcript JSON. Please verify file format."
+
+Display to user:
+```
+Reading transcript...
+- Total segments: {total_segments}
+- Sampled segments: {sampled_count} (every 10th)
+```
 
 ### 7. Generate Metadata with AI
 
@@ -257,7 +278,10 @@ Summary:
 
 ### 8. Apply Metadata to MP3
 
-Use Python script with eyeD3 API to add all metadata (title, summary, chapters) in one operation:
+**⚠️ CRITICAL: NO INTERMEDIATE FILES - EDIT IN-PLACE ONLY**
+
+Use Python script with eyeD3 API to add all metadata (title, summary, chapters) in one operation.
+The Python script MUST edit the MP3 file in-place. DO NOT create any temporary files.
 
 ```bash
 # Build chapters argument from JSON
@@ -290,11 +314,13 @@ Applying metadata to MP3...
 ✓ Title, summary, and chapters added successfully
 ```
 
-Notes:
-- No intermediate files created
-- In-place editing of MP3 file
-- Single operation adds all metadata
-- Uses eyeD3 Python API for everything (no ffmpeg needed)
+**CRITICAL NOTES:**
+- ❌ NO intermediate files - NEVER create temp.mp3, {episode}_temp.mp3, or any backup files
+- ✅ In-place editing of MP3 file ONLY
+- ✅ Single operation adds all metadata atomically
+- ✅ Uses eyeD3 Python API for everything (no ffmpeg for writing)
+- ❌ DO NOT use ffmpeg -i input.mp3 output.mp3 (creates intermediate file)
+- ❌ DO NOT copy files before editing
 
 ### 9. Verify and Report
 
@@ -355,8 +381,18 @@ Handle these error scenarios gracefully:
 ## Notes
 
 - Always use zero-padded 4-digit episode numbers (e.g., 0065, not 65)
-- Preserve original MP3 file until write is confirmed successful
-- Clean up temporary files even on error
 - Display progress at each step so user knows what's happening
 - The transcript file can be large (600KB+), handle appropriately
 - Project-specific paths are hardcoded for gaikiyoku.fm
+
+## ⚠️ CRITICAL FILE HANDLING RULES
+
+**ABSOLUTELY NO INTERMEDIATE FILES:**
+- ❌ NEVER create temporary MP3 files (temp.mp3, {episode}_temp.mp3, backup.mp3, etc.)
+- ❌ NEVER use ffmpeg to create new MP3 files (ffmpeg -i input.mp3 output.mp3)
+- ❌ NEVER copy the MP3 file before editing
+- ✅ ONLY use eyeD3 Python API for in-place editing
+- ✅ ONLY use Read tool to access transcript (no file operations)
+- ✅ Edit the original MP3 file directly with tag.save(mp3_file)
+
+If you find yourself about to create ANY file other than reading/writing the original MP3 in-place, STOP and reconsider your approach.
