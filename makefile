@@ -11,6 +11,7 @@ TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.json,$(AUDIO_FILES
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
 	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
+	@echo make metadata          : add metadata \(chapters, title, summary\)
 	@echo make post              : create post for new mp3
 	@echo make local             : local test
 	@echo make twitter           : create twitter post
@@ -42,6 +43,9 @@ split:
 mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 	eyeD3 --add-image images/artwork.jpg:FRONT_COVER --title "$(NEXT_EP_NUM). " --comment "//について話しました。" --album "gaikiyoku.fm" audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
+
+metadata:
+	claude --print "/podcast-metadata $(NEXT_EP_NUM)"
 
 local:
 	open http://localhost:4000/
