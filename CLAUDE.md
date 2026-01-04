@@ -1,79 +1,79 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイダンスを提供します。
 
-## Project Overview
+## プロジェクト概要
 
-This is a Japanese podcast website (gaikiyoku.fm) built with Jekyll and hosted on GitHub Pages. The site features 59+ episodes with full audio transcripts and automated production workflows.
+gaikiyoku.fm は、Jekyll で構築され GitHub Pages でホスティングされている日本語ポッドキャストサイトです。59以上のエピソードを配信しており、全エピソードに音声トランスクリプトと自動化されたプロダクションワークフローを備えています。
 
-## Development Commands
+## 開発コマンド
 
-### Local Development
+### ローカル開発
 ```bash
-# Start local Jekyll server
+# ローカルJekyllサーバーを起動
 make local
-# or directly:
+# または直接:
 bundle exec jekyll serve -I
 
-# Docker-based development
+# Dockerベースの開発
 docker-compose up
 ```
 
-### Content Production Workflow
+### コンテンツ制作ワークフロー
 ```bash
-# Create new episode post (auto-generates from latest audio file)
+# 新規エピソード投稿を作成（最新の音声ファイルから自動生成）
 make post
 
-# Convert WAV to MP3 with metadata
+# WAVをメタデータ付きMP3に変換
 make mp3 ARG=episode.wav
 
-# Split stereo audio to mono tracks
+# ステレオ音声をモノラルトラックに分割
 make split ARG=episode.wav
 
-# Generate transcripts using Whisper
+# Whisperを使用してトランスクリプトを生成
 make whisper
 
-# Update Algolia search index with transcripts
+# トランスクリプトでAlgolia検索インデックスを更新
 make algolia
 
-# Generate Twitter post content
+# Twitter投稿コンテンツを生成
 make twitter
 ```
 
-## Architecture
+## アーキテクチャ
 
-### Jekyll Configuration
-- **Layouts**: `_layouts/` contains `article.html` (episode pages), `default.html` (base), `search.html`
-- **Posts**: Each episode is a markdown file in `_posts/` with YAML frontmatter
-- **Actors**: Defined in `_config.yml` with Gravatar URLs for host profiles
-- **Audio**: MP3 files in `audio/` directory with transcripts in `audio/transcript/`
+### Jekyll設定
+- **レイアウト**: `_layouts/` には `article.html`（エピソードページ）、`default.html`（ベース）、`search.html` が含まれます
+- **投稿**: 各エピソードは `_posts/` 内のマークダウンファイルで、YAMLフロントマターを持ちます
+- **出演者**: `_config.yml` で定義され、ホストプロフィール用のGravatar URLを持ちます
+- **音声**: `audio/` ディレクトリ内のMP3ファイル、トランスクリプトは `audio/transcript/` にあります
 
-### Content Structure
-- **Episode Template**: `template.md` used by makefile to generate new episodes
-- **Frontmatter Variables**: `actor_ids`, `audio_file_path`, `audio_file_size`, `duration`, `description`, `title`
-- **Audio Player**: Uses MediaElement.js for embedded audio playback
+### コンテンツ構造
+- **エピソードテンプレート**: makefileで新規エピソード生成に使用される `template.md`
+- **フロントマター変数**: `actor_ids`, `audio_file_path`, `audio_file_size`, `duration`, `description`, `title`
+- **オーディオプレイヤー**: 埋め込み音声再生にMediaElement.jsを使用
 
-### Build Process
-The makefile automates the entire podcast production pipeline:
-1. Audio processing (WAV → MP3 conversion with ID3 tags)
-2. Post generation with metadata extraction from audio files
-3. Transcript generation using OpenAI Whisper
-4. Search indexing with Algolia
-5. Social media content generation
+### ビルドプロセス
+makefileがポッドキャスト制作パイプライン全体を自動化:
+1. 音声処理（WAV → ID3タグ付きMP3変換）
+2. 音声ファイルからメタデータを抽出して投稿を生成
+3. OpenAI Whisperを使用したトランスクリプト生成
+4. Algoliaによる検索インデックス作成
+5. ソーシャルメディアコンテンツ生成
 
-### Key File Patterns
-- Episodes: `_posts/YYYY-MM-DD-{episode_number}.md`
-- Audio: `audio/gaikiyokufm-{zero_padded_number}.mp3`
-- Transcripts: `audio/transcript/gaikiyokufm-{zero_padded_number}.{format}`
+### 主要なファイルパターン
+- エピソード: `_posts/YYYY-MM-DD-{episode_number}.md`
+- 音声: `audio/gaikiyokufm-{zero_padded_number}.mp3`
+- トランスクリプト: `audio/transcript/gaikiyokufm-{zero_padded_number}.{format}`
 
-### SCSS Structure
-- Main stylesheet: `css/main.scss`
-- Modular blocks in `css/blocks/` for components like articles, cards, headers
-- Variables and mixins in `css/_variables.scss` and `css/_mixins.scss`
+### SCSS構造
+- メインスタイルシート: `css/main.scss`
+- `css/blocks/` 内のモジュール化されたブロック（articles, cards, headersなどのコンポーネント用）
+- `css/_variables.scss` と `css/_mixins.scss` 内の変数とミックスイン
 
-## Important Notes
-- All audio files include metadata (title, description) embedded via ffprobe/eyeD3
-- Transcripts are generated in multiple formats (JSON, SRT, VTT, TXT, TSV)
-- The site uses Japanese language settings and timezone (Asia/Tokyo)
-- Algolia search integration requires API keys in `_config.yml`
-- Git hooks are configured via `.githooks` directory
+## 重要な注意事項
+- 全ての音声ファイルにはffprobe/eyeD3経由で埋め込まれたメタデータ（タイトル、説明）が含まれます
+- トランスクリプトは複数形式で生成されます（JSON, SRT, VTT, TXT, TSV）
+- サイトは日本語の言語設定とタイムゾーン（Asia/Tokyo）を使用します
+- Algolia検索統合には `_config.yml` 内のAPIキーが必要です
+- Gitフックは `.githooks` ディレクトリで設定されています

@@ -2,7 +2,7 @@
 
 https://gaikiyoku.fm
 
-## hooks
+## フック設定
 
 ```bash
 git config --local core.hooksPath .githooks

@@ -1,146 +1,146 @@
-# Claude Code for gaikiyoku.fm
+# gaikiyoku.fm 用 Claude Code
 
-This document describes Claude Code commands and workflows specific to the gaikiyoku.fm project.
+このドキュメントは、gaikiyoku.fm プロジェクト固有のClaude Codeコマンドとワークフローについて説明します。
 
-## Available Commands
+## 利用可能なコマンド
 
-### `/podcast-metadata <episode-number>`
+### `/add-metadata <エピソード番号>`
 
-Automatically generates and adds metadata (chapters, title, summary) to podcast MP3 files.
+ポッドキャストMP3ファイルにメタデータ（チャプター、タイトル、サマリー）を自動生成して追加します。
 
-**Usage:**
+**使い方:**
 ```
-/podcast-metadata 65
+/add-metadata 65
 ```
 
-**What it does:**
-1. Reads the MP3 file and transcript JSON
-2. Analyzes 3 previous episodes for style consistency
-3. Uses AI to generate:
-   - Episode title (e.g., "65. タイトル")
-   - Chapters (roughly 1 per 10 minutes, based on topic shifts)
-   - Summary (slash-separated keywords ending with "について話しました。")
-4. Writes metadata to the MP3 file using ffmpeg
+**実行内容:**
+1. MP3ファイルとトランスクリプトJSONを読み込み
+2. スタイルの一貫性のために過去3エピソードを分析
+3. AIを使用して以下を生成:
+   - エピソードタイトル（例: "65. タイトル"）
+   - チャプター（トピックの変化に基づいて、約10分に1つ）
+   - サマリー（スラッシュ区切りのキーワード、"について話しました。"で終了）
+4. ffmpegを使用してMP3ファイルにメタデータを書き込み
 
-**Requirements:**
-- MP3 file must exist: `audio/gaikiyokufm-{4-digit-number}.mp3`
-- Transcript JSON must exist: `audio/transcript/gaikiyokufm-{4-digit-number}.json`
-- ffmpeg and ffprobe must be installed: `brew install ffmpeg`
+**必要要件:**
+- MP3ファイルが存在すること: `audio/gaikiyokufm-{4桁の番号}.mp3`
+- トランスクリプトJSONが存在すること: `audio/transcript/gaikiyokufm-{4桁の番号}.json`
+- ffmpegとffprobeがインストールされていること: `brew install ffmpeg`
 
-## New Episode Workflow
+## 新規エピソードワークフロー
 
-When publishing a new episode, follow these steps:
+新しいエピソードを公開する際は、以下の手順に従ってください:
 
-### 1. Create MP3 with Basic Metadata
+### 1. 基本メタデータ付きMP3を作成
 ```bash
 make mp3 ARG=episode-66.wav
 ```
 
-This creates the MP3 file and adds basic metadata (album art, template title).
+これによりMP3ファイルが作成され、基本メタデータ（アルバムアート、テンプレートタイトル）が追加されます。
 
-### 2. Generate Transcript
+### 2. トランスクリプトを生成
 ```bash
 make whisper
 ```
 
-This uses Whisper to create the transcript JSON file.
+これによりWhisperを使用してトランスクリプトJSONファイルが作成されます。
 
-### 3. Add Detailed Metadata
+### 3. 詳細なメタデータを追加
 ```bash
 make metadata
 ```
 
-or directly:
+または直接:
 ```bash
 claude
-> /podcast-metadata 66
+> /add-metadata 66
 ```
 
-This analyzes the transcript and adds detailed metadata (chapters, title, summary).
+これによりトランスクリプトを分析し、詳細なメタデータ（チャプター、タイトル、サマリー）が追加されます。
 
-### 4. Create Post
+### 4. 投稿を作成
 ```bash
 make post
 ```
 
-This creates the Jekyll post file from the MP3 metadata.
+これによりMP3メタデータからJekyll投稿ファイルが作成されます。
 
-### 5. Create Twitter Post
+### 5. Twitter投稿を作成
 ```bash
 make twitter
 ```
 
-This generates text for the Twitter announcement.
+これによりTwitter告知用のテキストが生成されます。
 
-## Complete Workflow
+## 完全なワークフロー
 
 ```bash
-# Step 1: Convert audio to MP3
+# ステップ1: 音声をMP3に変換
 make mp3 ARG=episode-66.wav
 
-# Step 2: Generate transcript
+# ステップ2: トランスクリプトを生成
 make whisper
 
-# Step 3: Add metadata
+# ステップ3: メタデータを追加
 make metadata
 
-# Step 4: Create post
+# ステップ4: 投稿を作成
 make post
 
-# Step 5: Review and commit
+# ステップ5: 確認とコミット
 git status
 git add .
 git commit -m "Add episode 66"
 ```
 
-## Troubleshooting
+## トラブルシューティング
 
-### Command not found: claude
+### コマンドが見つかりません: claude
 
-Make sure Claude Code is installed and in your PATH. See: https://claude.com/claude-code
+Claude Codeがインストールされ、PATHに含まれていることを確認してください。参照: https://claude.com/claude-code
 
-### MP3 file not found
+### MP3ファイルが見つかりません
 
-Check that:
-1. The episode number is correct
-2. The MP3 file exists in `audio/gaikiyokufm-{4-digit}.mp3`
-3. The number is zero-padded to 4 digits (e.g., 0066, not 66)
+以下を確認してください:
+1. エピソード番号が正しいこと
+2. MP3ファイルが `audio/gaikiyokufm-{4桁}.mp3` に存在すること
+3. 番号が4桁にゼロパディングされていること（例: 0066、66ではない）
 
-### Transcript file not found
+### トランスクリプトファイルが見つかりません
 
-Make sure you ran `make whisper` first to generate the transcript.
+トランスクリプトを生成するために、まず `make whisper` を実行してください。
 
-### ffmpeg/ffprobe not found
+### ffmpeg/ffprobeが見つかりません
 
-Install ffmpeg:
+ffmpegをインストール:
 ```bash
 brew install ffmpeg
 ```
 
-### Metadata generation failed
+### メタデータ生成に失敗しました
 
-Check the Claude Code output for errors. Common issues:
-- Transcript JSON is malformed
-- No reference episodes available (first 3 episodes)
-- AI response was not valid JSON
+Claude Codeの出力でエラーを確認してください。よくある問題:
+- トランスクリプトJSONの形式が不正
+- 参照エピソードが利用できない（最初の3エピソード）
+- AIの応答が有効なJSONではない
 
-You can retry the command after fixing the issue.
+問題を修正した後、コマンドを再実行できます。
 
-## Settings
+## 設定
 
-Project-specific settings are in `.claude/settings.local.json`:
-- Permissions for git, ffmpeg, ffprobe, etc.
-- Hooks configuration (if any)
+プロジェクト固有の設定は `.claude/settings.local.json` にあります:
+- git、ffmpeg、ffprobeなどの権限
+- フック設定（該当する場合）
 
-Podcast-specific paths are hardcoded in `.claude/commands/podcast-metadata.md`:
-- Project root: `/Users/shidetake/git/gaikiyokufm.github.io`
-- Audio directory: `audio`
-- Transcript directory: `audio/transcript`
-- File prefix: `gaikiyokufm`
-- Zero-padding: 4 digits
+ポッドキャスト固有のパスは `.claude/commands/add-metadata.md` にハードコードされています:
+- プロジェクトルート: `/Users/shidetake/git/gaikiyokufm.github.io`
+- 音声ディレクトリ: `audio`
+- トランスクリプトディレクトリ: `audio/transcript`
+- ファイルプレフィックス: `gaikiyokufm`
+- ゼロパディング: 4桁
 
-## Additional Resources
+## 追加リソース
 
-- [Claude Code Documentation](https://code.claude.com/docs)
-- [makefile](../makefile) - Build automation
-- [CLAUDE.md](../CLAUDE.md) - Development guide
+- [Claude Codeドキュメント](https://code.claude.com/docs)
+- [makefile](../makefile) - ビルド自動化
+- [CLAUDE.md](../CLAUDE.md) - 開発ガイド

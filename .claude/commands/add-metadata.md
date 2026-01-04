@@ -1,25 +1,25 @@
 ---
-description: Generate and add metadata (chapters, title, summary) to podcast MP3 files for gaikiyoku.fm
-argument-hint: <episode-number>
+description: gaikiyoku.fmのポッドキャストMP3ファイルにメタデータ（チャプター、タイトル、サマリー）を生成して追加
+argument-hint: <エピソード番号>
 ---
 
-# Add Podcast Metadata Command
+# ポッドキャストメタデータ追加コマンド
 
-Analyzes a podcast transcript and automatically generates chapters, episode title, and summary, then writes them to the MP3 file for gaikiyoku.fm.
+ポッドキャストのトランスクリプトを分析し、チャプター、エピソードタイトル、サマリーを自動生成してgaikiyoku.fmのMP3ファイルに書き込みます。
 
-## Usage
+## 使い方
 
 ```
-/add-metadata <episode-number>
+/add-metadata <エピソード番号>
 ```
 
-## Arguments
+## 引数
 
-- `episode-number`: The episode number (e.g., 64, 65)
+- `エピソード番号`: エピソード番号（例: 64, 65）
 
-The command uses the following gaikiyoku.fm-specific paths:
-- MP3 files: `audio/gaikiyokufm-{4-digit-number}.mp3`
-- Transcript files: `audio/transcript/gaikiyokufm-{4-digit-number}.json`
+コマンドは以下のgaikiyoku.fm固有のパスを使用します:
+- MP3ファイル: `audio/gaikiyokufm-{4桁の番号}.mp3`
+- トランスクリプトファイル: `audio/transcript/gaikiyokufm-{4桁の番号}.json`
 
 ## Execution Steps
 
@@ -214,6 +214,41 @@ CRITICAL REQUIREMENTS:
 - Each chapter should represent a distinct topic or conversation segment
 - Chapter titles should be concise and descriptive (like reference episodes)
 
+### RANKING CONTENT DETECTION (SPECIAL HANDLING)
+
+**CRITICAL: Analyze if this episode contains ranking-format content.**
+
+Ranking indicators:
+- Title or early transcript mentions "ランキング"
+- Sequential mentions of ranking positions: "3位", "2位", "1位"
+- Multiple speakers presenting their picks
+- Phrases like "私の3位は", "僕の1位は", "〜さんの2位は"
+
+**IF RANKING CONTENT DETECTED:**
+
+Chapter creation for rankings:
+1. Create a chapter for EACH UNIQUE ranking item mentioned (first mention only)
+2. **Chapter title = item name ONLY** (no position, no speaker, no labels)
+   - Examples:
+     - "茨城ゆるーム"
+     - "ラカンの湯"
+     - "前橋毎日サウナ"
+   - NOT: "1位: ラカンの湯" ❌
+   - NOT: "飯崎の1位: ラカンの湯" ❌
+   - NOT: "番外編: アダム&イブ" ❌
+3. Use timestamp where item is FIRST INTRODUCED/named
+4. **Duplicate handling**: If same item mentioned multiple times (different speakers/positions), create chapter ONLY at first mention
+5. **番外編 handling**: NO "番外編" label - just use item name(s) directly
+   - Single item: Use item name only
+   - Multiple items: "{item1}と{item2}" or separate chapters
+6. Mix ranking chapters with other non-ranking topic chapters if needed
+7. Typical ranking episode: 5-8 unique chapters (unique items + outros)
+
+**IF NOT RANKING CONTENT:**
+- Use standard 3-5 topic-based chapters
+
+Return `"ranking_mode": true` in JSON if rankings detected, `false` otherwise.
+
 Format: Return as JSON array of objects with:
 - `start_ms`: Start time in milliseconds (integer) - taken from segment timestamp
 - `title`: Chapter title in Japanese (string)
@@ -241,6 +276,7 @@ Example: "東京マラソン完走/ラーメン店巡り/次回の目標/トレ�
 Return ONLY a valid JSON object with this exact structure:
 {
   "title": "65. タイトル",
+  "ranking_mode": false,
   "chapters": [
     {"start_ms": 0, "title": "チャプター1"},
     {"start_ms": 600000, "title": "チャプター2"}
@@ -248,13 +284,22 @@ Return ONLY a valid JSON object with this exact structure:
   "summary": "トピック1/トピック2/トピック3について話しました。"
 }
 
+IMPORTANT NOTES:
+- Set "ranking_mode": true if ranking content detected, false otherwise
+- For ranking episodes: Chapter titles should be item names ONLY (e.g., "茨城ゆるーム", "ラカンの湯")
+  - NO position numbers: ❌ "1位: ラカンの湯"
+  - NO speaker names: ❌ "飯崎の1位: ラカンの湯"
+  - Just the item: ✅ "ラカンの湯"
+- For non-ranking episodes: Use descriptive topic titles as usual
+
 Do not include any markdown code blocks, explanations, or extra text - ONLY the JSON object.
 ```
 
 Parse the JSON response from Claude.
 
 Validate the response:
-- Has `title`, `chapters`, and `summary` fields
+- Has `title`, `chapters`, `summary`, and `ranking_mode` fields
+- `ranking_mode` is a boolean (true or false)
 - `chapters` is an array with at least 2 elements
 - First chapter starts at 0
 - All start_ms values are valid integers
@@ -267,6 +312,7 @@ Display generated metadata to user:
 Generated metadata:
 
 Title: {title}
+Mode: {ranking_mode ? "Ranking-format" : "Standard"}
 
 Chapters ({count}):
 {For each chapter:}
