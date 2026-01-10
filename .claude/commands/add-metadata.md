@@ -21,19 +21,19 @@ argument-hint: <エピソード番号>
 - MP3ファイル: `audio/gaikiyokufm-{4桁の番号}.mp3`
 - トランスクリプトファイル: `audio/transcript/gaikiyokufm-{4桁の番号}.json`
 
-## Execution Steps
+## 実行手順
 
-When this command is invoked, follow these steps carefully:
+このコマンドが呼び出されたら、以下の手順に注意深く従ってください:
 
-**⚠️ CRITICAL: DO NOT CREATE ANY TEMPORARY OR INTERMEDIATE FILES**
-- All operations MUST be in-place on the original MP3 file
-- NEVER create files like "temp.mp3", "{episode}_temp.mp3", or any backup files
-- Use Read tool for transcript access (no file copying)
-- Use eyeD3 Python API for in-place MP3 editing (no ffmpeg for writing)
+**⚠️ 重要: 一時ファイルや中間ファイルを一切作成しないこと**
+- 全ての操作は元のMP3ファイル上でインプレースで行う必要があります
+- "temp.mp3"、"{episode}_temp.mp3"、バックアップファイルなどのファイルを絶対に作成しないこと
+- トランスクリプトへのアクセスにはReadツールを使用（ファイルコピーなし）
+- MP3編集にはeyeD3 Python APIを使用してインプレース編集（書き込みにffmpegは使用しない）
 
-### 0. Project Configuration
+### 0. プロジェクト設定
 
-Define gaikiyoku.fm-specific settings (these are hardcoded for this project):
+gaikiyoku.fm固有の設定を定義（このプロジェクトではハードコード）:
 
 ```bash
 PROJECT_ROOT="/Users/shidetake/git/gaikiyokufm.github.io"
@@ -43,74 +43,74 @@ FILE_PREFIX="gaikiyokufm"
 PADDING=4
 ```
 
-All subsequent steps use these settings to construct file paths.
+以降の全ての手順では、これらの設定を使用してファイルパスを構築します。
 
-### 1. Parse Arguments and Validate
+### 1. 引数の解析と検証
 
-Extract episode number from positional parameter:
-- `$1`: episode number (numeric)
+位置パラメータからエピソード番号を抽出:
+- `$1`: エピソード番号（数値）
 
-Validate episode number:
-- Must be a positive integer
-- If invalid, show error: "Invalid episode number. Please provide a numeric episode number (e.g., 65)"
+エピソード番号を検証:
+- 正の整数である必要があります
+- 無効な場合、エラーを表示: "Invalid episode number. Please provide a numeric episode number (e.g., 65)"
 
-### 2. Check File Existence
+### 2. ファイルの存在確認
 
-Construct file paths (zero-pad episode number to 4 digits):
+ファイルパスを構築（エピソード番号を4桁にゼロパディング）:
 ```
 mp3_file="${PROJECT_ROOT}/${AUDIO_DIR}/${FILE_PREFIX}-{episode_number_padded}.mp3"
 json_file="${PROJECT_ROOT}/${TRANSCRIPT_DIR}/${FILE_PREFIX}-{episode_number_padded}.json"
 ```
 
-Example: Episode 65 → `/Users/shidetake/git/gaikiyokufm.github.io/audio/gaikiyokufm-0065.mp3` and `.../audio/transcript/gaikiyokufm-0065.json`
+例: エピソード65 → `/Users/shidetake/git/gaikiyokufm.github.io/audio/gaikiyokufm-0065.mp3` と `.../audio/transcript/gaikiyokufm-0065.json`
 
-Check if both files exist:
-- If mp3 missing: "MP3 file not found: {mp3_file}"
-- If json missing: "Transcript file not found: {json_file}"
-- Suggest checking episode number
+両方のファイルが存在することを確認:
+- mp3が見つからない場合: "MP3 file not found: {mp3_file}"
+- jsonが見つからない場合: "Transcript file not found: {json_file}"
+- エピソード番号の確認を提案
 
-### 3. Verify Dependencies
+### 3. 依存関係の確認
 
-Check if required tools are available:
+必要なツールが利用可能か確認:
 ```bash
 command -v ffprobe >/dev/null 2>&1 || { echo "ffprobe not found. Please install: brew install ffmpeg"; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "python3 not found"; exit 1; }
 command -v jq >/dev/null 2>&1 || { echo "jq not found. Please install: brew install jq"; exit 1; }
 ```
 
-### 4. Read Current MP3 Metadata
+### 4. 現在のMP3メタデータを読み込み
 
-Use ffprobe to get audio duration and current metadata:
+ffprobeを使用して音声の長さと現在のメタデータを取得:
 ```bash
 ffprobe -v quiet -print_format json -show_format -show_chapters "{mp3_file}"
 ```
 
-Extract:
-- Duration in seconds: `format.duration`
-- Current title: `format.tags.title`
-- Current comment: `format.tags.comment`
-- Existing chapters: `chapters[]`
+抽出:
+- 秒単位の長さ: `format.duration`
+- 現在のタイトル: `format.tags.title`
+- 現在のコメント: `format.tags.comment`
+- 既存のチャプター: `chapters[]`
 
-Display to user:
+ユーザーに表示:
 ```
 Reading episode {episode_number}...
 - MP3 file: {mp3_file}
 - Duration: {duration_seconds}s ({minutes}:{seconds})
 ```
 
-### 5. Analyze Reference Episodes
+### 5. 参照エピソードを分析
 
-For reference episodes (episode_number - 1, episode_number - 2, episode_number - 3):
-- Construct file paths with zero-padding
-- Check if each reference MP3 exists in ${PROJECT_ROOT}/${AUDIO_DIR}/
-- If exists, use ffprobe to extract metadata
+参照エピソード（episode_number - 1, episode_number - 2, episode_number - 3）について:
+- ゼロパディングを使用してファイルパスを構築
+- 各参照MP3が ${PROJECT_ROOT}/${AUDIO_DIR}/ に存在するか確認
+- 存在する場合、ffprobeを使用してメタデータを抽出
 
-For each reference episode found, extract:
-- Title: `format.tags.title`
-- Chapters: `chapters[]` with `tags.title` and `start_time`
-- Summary: `format.tags.comment`
+見つかった各参照エピソードから抽出:
+- タイトル: `format.tags.title`
+- チャプター: `tags.title` と `start_time` を持つ `chapters[]`
+- サマリー: `format.tags.comment`
 
-Display to user:
+ユーザーに表示:
 ```
 Analyzing reference episodes for style consistency...
 - Episode {N-1}: "{title}" ({chapter_count} chapters)
@@ -118,162 +118,162 @@ Analyzing reference episodes for style consistency...
 - Episode {N-3}: "{title}" ({chapter_count} chapters)
 ```
 
-If no reference episodes found, show warning:
+参照エピソードが見つからない場合、警告を表示:
 "No reference episodes found. Will generate metadata based on transcript only."
 
-### 6. Read Transcript
+### 6. トランスクリプトを読み込み
 
-Use the Python script to read and process the transcript JSON file:
+Pythonスクリプトを使用してトランスクリプトJSONファイルを読み込み・処理:
 
 ```bash
 python3 .claude/scripts/read_transcript.py "{json_file}"
 ```
 
-The script outputs JSON with:
-- `full_text`: Complete transcript text
-- `sampled_segments`: Every 10th segment with start/end times and text
-- `total_segments`: Total number of segments
+スクリプトは以下のJSONを出力:
+- `full_text`: 完全なトランスクリプトテキスト
+- `sampled_segments`: 開始/終了時刻とテキストを持つ10個おきのセグメント
+- `total_segments`: 総セグメント数
 
-Parse the JSON output:
+JSON出力を解析:
 ```bash
 transcript_json=$(python3 .claude/scripts/read_transcript.py "{json_file}")
 ```
 
-Extract data from the JSON output for use in metadata generation:
-- Full text for overall content analysis
-- Sampled segments with timestamps for chapter boundary detection
-- Total segment count for reference
+メタデータ生成に使用するためにJSON出力からデータを抽出:
+- 全体的な内容分析のための全文
+- チャプター境界検出のためのタイムスタンプ付きサンプルセグメント
+- 参照用の総セグメント数
 
-If the script fails, show error:
+スクリプトが失敗した場合、エラーを表示:
 "Failed to read transcript JSON. Please verify file format."
 
-Display to user:
+ユーザーに表示:
 ```
 Reading transcript...
 - Total segments: {total_segments}
 - Sampled segments: {sampled_count} (every 10th)
 ```
 
-### 7. Generate Metadata with AI
+### 7. AIでメタデータを生成
 
-Now use Claude to analyze the transcript and generate metadata. Provide this prompt:
+Claudeを使用してトランスクリプトを分析し、メタデータを生成します。以下のプロンプトを提供:
 
 ```
-You are analyzing a Japanese podcast transcript to generate metadata for episode {episode_number} of gaikiyoku.fm.
+gaikiyoku.fmのエピソード{episode_number}のメタデータを生成するために、日本語ポッドキャストトランスクリプトを分析しています。
 
-## Episode Information
-- Episode number: {episode_number}
-- Duration: {duration_seconds} seconds ({minutes} minutes)
+## エピソード情報
+- エピソード番号: {episode_number}
+- 長さ: {duration_seconds}秒 ({minutes}分)
 
-## Reference Episodes (for style consistency)
+## 参照エピソード（スタイルの一貫性のため）
 
-{For each reference episode found:}
-Episode {ref_number}:
-- Title: {ref_title}
-- Chapters ({ref_chapter_count}):
-  {For each chapter:}
+{見つかった各参照エピソードについて:}
+エピソード {ref_number}:
+- タイトル: {ref_title}
+- チャプター ({ref_chapter_count}):
+  {各チャプターについて:}
   - {start_time_formatted} - {chapter_title}
-- Summary: {ref_summary}
+- サマリー: {ref_summary}
 
-## Transcript Segments (with timestamps)
+## トランスクリプトセグメント（タイムスタンプ付き）
 
-{Sampled segments with start/end times and text - use these timestamps to identify topic transitions}
+{開始/終了時刻とテキストを持つサンプルセグメント - これらのタイムスタンプを使用してトピックの移り変わりを特定}
 
-Example format:
+形式例:
 - 0.4s-3.54s: "こんにちは 外記録FMです"
 - 922.78s-925.02s: "プログリッド3ヶ月"
 - 1244.92s-1248.02s: "僕ひぐまというyoutuberにはまってます"
 
-{List sampled segments here}
+{ここにサンプルセグメントのリスト}
 
-## Full Transcript Text
+## 完全なトランスクリプトテキスト
 
 {full_transcript_text}
 
-## Task
+## タスク
 
-Generate metadata for this episode following these rules:
+以下のルールに従ってこのエピソードのメタデータを生成してください:
 
-### 1. EPISODE TITLE
-Format: "{episode_number}. {descriptive title in Japanese}"
-- Capture 2-3 main topics discussed
-- Follow the style of reference episodes
-- Keep concise but descriptive
-- Example: "64. Oasisと火災警報と松茸小屋"
+### 1. エピソードタイトル
+形式: "{episode_number}. {日本語の説明的なタイトル}"
+- 話し合われた主要なトピック2-3個を捉える
+- 参照エピソードのスタイルに従う
+- 簡潔だが説明的に保つ
+- 例: "64. Oasisと火災警報と松茸小屋"
 
-### 2. CHAPTERS
-CRITICAL REQUIREMENTS:
-- Use the Transcript Segments timestamps above to identify natural topic transitions
-- Find the EXACT segment timestamp (in seconds) where each topic shift occurs
-- Convert that timestamp to milliseconds for start_ms (multiply seconds by 1000)
-- Chapter count should naturally emerge from content (typically 3-5 chapters for ~40min episodes)
-- DO NOT space chapters evenly or use time-based intervals
-- NO "オープニング" or "エンディング" chapters - skip these entirely
-- First chapter MUST start at 0ms (00:00)
-- Skip opening chitchat (weather, greetings, etc.) - the first chapter title should be about the ACTUAL first topic
-- Each chapter should represent a distinct topic or conversation segment
-- Chapter titles should be concise and descriptive (like reference episodes)
+### 2. チャプター
+重要な要件:
+- 上記のトランスクリプトセグメントのタイムスタンプを使用して、自然なトピックの移り変わりを特定
+- 各トピックの切り替わりが発生する正確なセグメントタイムスタンプ（秒単位）を見つける
+- start_msのためにそのタイムスタンプをミリ秒に変換（秒 × 1000）
+- チャプター数はコンテンツから自然に導き出されるべき（~40分エピソードで通常3-5チャプター）
+- チャプターを均等に配置したり、時間ベースの間隔を使用しないこと
+- "オープニング" や "エンディング" チャプターは一切なし - これらは完全にスキップ
+- 最初のチャプターは必ず0ms（00:00）から開始
+- オープニングの雑談（天気、挨拶など）はスキップ - 最初のチャプタータイトルは実際の最初のトピックについてであるべき
+- 各チャプターは明確なトピックまたは会話セグメントを表すべき
+- チャプタータイトルは簡潔で説明的であるべき（参照エピソードのように）
 
-### RANKING CONTENT DETECTION (SPECIAL HANDLING)
+### ランキングコンテンツ検出（特別処理）
 
-**CRITICAL: Analyze if this episode contains ranking-format content.**
+**重要: このエピソードがランキング形式のコンテンツを含んでいるか分析してください。**
 
-Ranking indicators:
-- Title or early transcript mentions "ランキング"
-- Sequential mentions of ranking positions: "3位", "2位", "1位"
-- Multiple speakers presenting their picks
-- Phrases like "私の3位は", "僕の1位は", "〜さんの2位は"
+ランキングの指標:
+- タイトルまたはトランスクリプト冒頭に "ランキング" の言及
+- ランキング順位の連続的な言及: "3位", "2位", "1位"
+- 複数の話者が各自の選択を発表
+- "私の3位は", "僕の1位は", "〜さんの2位は" などのフレーズ
 
-**IF RANKING CONTENT DETECTED:**
+**ランキングコンテンツが検出された場合:**
 
-Chapter creation for rankings:
-1. Create a chapter for EACH UNIQUE ranking item mentioned (first mention only)
-2. **Chapter title = item name ONLY** (no position, no speaker, no labels)
-   - Examples:
+ランキングのチャプター作成:
+1. 言及された各ユニークなランキング項目ごとにチャプターを作成（最初の言及のみ）
+2. **チャプタータイトル = アイテム名のみ**（順位なし、話者名なし、ラベルなし）
+   - 例:
      - "茨城ゆるーム"
      - "ラカンの湯"
      - "前橋毎日サウナ"
-   - NOT: "1位: ラカンの湯" ❌
-   - NOT: "飯崎の1位: ラカンの湯" ❌
-   - NOT: "番外編: アダム&イブ" ❌
-3. Use timestamp where item is FIRST INTRODUCED/named
-4. **Duplicate handling**: If same item mentioned multiple times (different speakers/positions), create chapter ONLY at first mention
-5. **番外編 handling**: NO "番外編" label - just use item name(s) directly
-   - Single item: Use item name only
-   - Multiple items: "{item1}と{item2}" or separate chapters
-6. Mix ranking chapters with other non-ranking topic chapters if needed
-7. Typical ranking episode: 5-8 unique chapters (unique items + outros)
+   - 不可: "1位: ラカンの湯" ❌
+   - 不可: "飯崎の1位: ラカンの湯" ❌
+   - 不可: "番外編: アダム&イブ" ❌
+3. アイテムが最初に紹介/命名されたタイムスタンプを使用
+4. **重複処理**: 同じアイテムが複数回言及された場合（異なる話者/順位）、最初の言及時のみチャプター作成
+5. **番外編の扱い**: "番外編" ラベルなし - アイテム名を直接使用
+   - 単一アイテム: アイテム名のみ使用
+   - 複数アイテム: "{item1}と{item2}" または別チャプター
+6. 必要に応じてランキングチャプターと他の非ランキングトピックチャプターを混在可能
+7. 典型的なランキングエピソード: 5-8個のユニークチャプター（ユニーク項目 + アウトロ）
 
-**IF NOT RANKING CONTENT:**
-- Use standard 3-5 topic-based chapters
+**ランキングコンテンツでない場合:**
+- 標準の3-5トピックベースチャプターを使用
 
-Return `"ranking_mode": true` in JSON if rankings detected, `false` otherwise.
+ランキングが検出された場合はJSONで `"ranking_mode": true` を、そうでない場合は `false` を返してください。
 
-Format: Return as JSON array of objects with:
-- `start_ms`: Start time in milliseconds (integer) - taken from segment timestamp
-- `title`: Chapter title in Japanese (string)
+形式: 以下を含むオブジェクトのJSON配列として返す:
+- `start_ms`: ミリ秒単位の開始時刻（整数） - セグメントタイムスタンプから取得
+- `title`: 日本語のチャプタータイトル（文字列）
 
-The last chapter should end at {duration_ms} milliseconds.
+最後のチャプターは {duration_ms} ミリ秒で終了すべきです。
 
-Example showing timestamps from actual topic transitions:
+実際のトピック移り変わりからのタイムスタンプを示す例:
 [
   {"start_ms": 0, "title": "東京マラソン完走記"},
   {"start_ms": 922780, "title": "ラーメン店巡り"},
   {"start_ms": 1499000, "title": "次回の目標"}
 ]
 
-### 3. SUMMARY
-Format: Slash-separated keywords ending with "について話しました。"
-- List all major topics discussed
-- Use "/" as separator
-- Follow the style of reference episodes
-- End with "について話しました。"
+### 3. サマリー
+形式: スラッシュ区切りのキーワードで "について話しました。" で終了
+- 話し合われた全ての主要なトピックをリスト
+- "/" を区切り文字として使用
+- 参照エピソードのスタイルに従う
+- "について話しました。" で終了
 
-Example: "東京マラソン完走/ラーメン店巡り/次回の目標/トレーニング計画について話しました。"
+例: "東京マラソン完走/ラーメン店巡り/次回の目標/トレーニング計画について話しました。"
 
-## Output Format
+## 出力形式
 
-Return ONLY a valid JSON object with this exact structure:
+以下の正確な構造のJSONオブジェクトのみを返してください:
 {
   "title": "65. タイトル",
   "ranking_mode": false,
@@ -284,30 +284,30 @@ Return ONLY a valid JSON object with this exact structure:
   "summary": "トピック1/トピック2/トピック3について話しました。"
 }
 
-IMPORTANT NOTES:
-- Set "ranking_mode": true if ranking content detected, false otherwise
-- For ranking episodes: Chapter titles should be item names ONLY (e.g., "茨城ゆるーム", "ラカンの湯")
-  - NO position numbers: ❌ "1位: ラカンの湯"
-  - NO speaker names: ❌ "飯崎の1位: ラカンの湯"
-  - Just the item: ✅ "ラカンの湯"
-- For non-ranking episodes: Use descriptive topic titles as usual
+重要な注意事項:
+- ランキングコンテンツが検出された場合は "ranking_mode": true を、そうでない場合は false を設定
+- ランキングエピソードの場合: チャプタータイトルはアイテム名のみ（例: "茨城ゆるーム", "ラカンの湯"）
+  - 順位番号は不可: ❌ "1位: ラカンの湯"
+  - 話者名は不可: ❌ "飯崎の1位: ラカンの湯"
+  - アイテムのみ: ✅ "ラカンの湯"
+- 非ランキングエピソードの場合: 通常通り説明的なトピックタイトルを使用
 
-Do not include any markdown code blocks, explanations, or extra text - ONLY the JSON object.
+マークダウンコードブロック、説明、追加テキストは含めないでください - JSONオブジェクトのみ。
 ```
 
-Parse the JSON response from Claude.
+Claudeからの JSON レスポンスを解析します。
 
-Validate the response:
-- Has `title`, `chapters`, `summary`, and `ranking_mode` fields
-- `ranking_mode` is a boolean (true or false)
-- `chapters` is an array with at least 2 elements
-- First chapter starts at 0
-- All start_ms values are valid integers
-- Chapter timestamps are in ascending order
+レスポンスを検証:
+- `title`, `chapters`, `summary`, `ranking_mode` フィールドを持つこと
+- `ranking_mode` はブール値（true または false）であること
+- `chapters` は少なくとも2要素の配列であること
+- 最初のチャプターは0から開始すること
+- 全ての start_ms 値が有効な整数であること
+- チャプターのタイムスタンプが昇順であること
 
-If validation fails, show error with details.
+検証が失敗した場合、詳細を含むエラーを表示します。
 
-Display generated metadata to user:
+生成されたメタデータをユーザーに表示:
 ```
 Generated metadata:
 
@@ -322,16 +322,16 @@ Summary:
 {summary}
 ```
 
-### 8. Apply Metadata to MP3
+### 8. MP3にメタデータを適用
 
-**⚠️ CRITICAL: NO INTERMEDIATE FILES - EDIT IN-PLACE ONLY**
+**⚠️ 重要: 中間ファイルなし - インプレース編集のみ**
 
-Use Python script with eyeD3 API to add all metadata (title, summary, chapters) in one operation.
-The Python script MUST edit the MP3 file in-place. DO NOT create any temporary files.
+eyeD3 APIを使用したPythonスクリプトで、全てのメタデータ（タイトル、サマリー、チャプター）を一度の操作で追加します。
+Pythonスクリプトは必ずMP3ファイルをインプレース編集する必要があります。一時ファイルを一切作成しないでください。
 
 ```bash
-# Build chapters argument from JSON
-# Format: "start_ms:title,start_ms:title,..."
+# JSONからチャプター引数を構築
+# 形式: "start_ms:title,start_ms:title,..."
 chapters_arg=""
 for i in "${!chapters[@]}"; do
   start_ms=$(echo "${chapters[$i]}" | jq -r '.start_ms')
@@ -342,7 +342,7 @@ for i in "${!chapters[@]}"; do
   chapters_arg="${chapters_arg}${start_ms}:${chapter_title}"
 done
 
-# Call Python script to add all metadata (in-place, no temp files)
+# 全てのメタデータを追加するPythonスクリプトを呼び出し（インプレース、一時ファイルなし）
 python3 .claude/scripts/add_podcast_metadata.py \
   "{mp3_file}" \
   "{title}" \
@@ -350,38 +350,38 @@ python3 .claude/scripts/add_podcast_metadata.py \
   "${chapters_arg}"
 ```
 
-Check if script succeeded:
-- If exit code is 0: Success, all metadata applied
-- If failed: Show error with Python traceback
+スクリプトが成功したか確認:
+- 終了コードが0の場合: 成功、全てのメタデータが適用された
+- 失敗した場合: Pythonトレースバックと共にエラーを表示
 
-Display:
+表示:
 ```
 Applying metadata to MP3...
 ✓ Title, summary, and chapters added successfully
 ```
 
-**CRITICAL NOTES:**
-- ❌ NO intermediate files - NEVER create temp.mp3, {episode}_temp.mp3, or any backup files
-- ✅ In-place editing of MP3 file ONLY
-- ✅ Single operation adds all metadata atomically
-- ✅ Uses eyeD3 Python API for everything (no ffmpeg for writing)
-- ❌ DO NOT use ffmpeg -i input.mp3 output.mp3 (creates intermediate file)
-- ❌ DO NOT copy files before editing
+**重要な注意事項:**
+- ❌ 中間ファイルなし - temp.mp3、{episode}_temp.mp3、バックアップファイルを絶対に作成しない
+- ✅ MP3ファイルのインプレース編集のみ
+- ✅ 単一操作で全てのメタデータをアトミックに追加
+- ✅ 全てにeyeD3 Python APIを使用（書き込みにffmpegは使用しない）
+- ❌ ffmpeg -i input.mp3 output.mp3 を使用しない（中間ファイルを作成する）
+- ❌ 編集前にファイルをコピーしない
 
-### 9. Verify and Report
+### 9. 検証とレポート
 
-Use ffprobe to verify metadata was written:
+ffprobeを使用してメタデータが書き込まれたことを検証:
 ```bash
 ffprobe -v quiet -print_format json -show_format -show_chapters "{mp3_file}"
 ```
 
-Check:
-- Title matches what was generated
-- Chapter count matches
-- First chapter starts at 0
-- Comment/summary is present
+確認:
+- タイトルが生成されたものと一致
+- チャプター数が一致
+- 最初のチャプターが0から開始
+- コメント/サマリーが存在
 
-Display final summary:
+最終サマリーを表示:
 ```
 ✓ Verification complete
 
@@ -393,52 +393,52 @@ Episode {episode_number} metadata has been added:
 You can now play the MP3 to see chapters in your podcast player!
 ```
 
-## Error Handling
+## エラーハンドリング
 
-Handle these error scenarios gracefully:
+以下のエラーシナリオを適切に処理してください:
 
-1. **Missing Files**
-   - Show exact path that was checked
-   - Suggest verifying episode number
+1. **ファイルが見つからない**
+   - チェックした正確なパスを表示
+   - エピソード番号を確認するよう提案
 
-2. **Invalid Episode Number**
-   - Show example: `/add-metadata 65`
+2. **無効なエピソード番号**
+   - 例を表示: `/add-metadata 65`
 
-3. **ffmpeg/ffprobe Not Found**
-   - Show install command for macOS: `brew install ffmpeg`
+3. **ffmpeg/ffprobeが見つからない**
+   - macOS用のインストールコマンドを表示: `brew install ffmpeg`
 
-4. **Transcript Parse Error**
-   - Show file path
-   - Suggest checking JSON structure
+4. **トランスクリプト解析エラー**
+   - ファイルパスを表示
+   - JSON構造を確認するよう提案
 
-5. **AI Generation Error**
-   - Show what failed (title/chapters/summary)
-   - Display Claude's raw response for debugging
+5. **AI生成エラー**
+   - 失敗した内容（タイトル/チャプター/サマリー）を表示
+   - デバッグ用にClaudeの生レスポンスを表示
 
-6. **Metadata Write Error**
-   - Preserve original file
-   - Show ffmpeg error output
-   - Check file permissions
+6. **メタデータ書き込みエラー**
+   - 元のファイルを保持
+   - ffmpegのエラー出力を表示
+   - ファイルのパーミッションを確認
 
-7. **No Reference Episodes**
-   - Just a warning, not an error
-   - Proceed with generation
+7. **参照エピソードがない**
+   - エラーではなく警告として扱う
+   - 生成処理を続行
 
-## Notes
+## 注意事項
 
-- Always use zero-padded 4-digit episode numbers (e.g., 0065, not 65)
-- Display progress at each step so user knows what's happening
-- The transcript file can be large (600KB+), handle appropriately
-- Project-specific paths are hardcoded for gaikiyoku.fm
+- 常にゼロパディングした4桁のエピソード番号を使用（例: 0065、65ではない）
+- ユーザーが進捗を把握できるよう、各ステップで進捗を表示
+- トランスクリプトファイルは大きい場合がある（600KB+）ので適切に処理
+- プロジェクト固有のパスはgaikiyoku.fm用にハードコード済み
 
-## ⚠️ CRITICAL FILE HANDLING RULES
+## ⚠️ 重要: ファイル処理ルール
 
-**ABSOLUTELY NO INTERMEDIATE FILES:**
-- ❌ NEVER create temporary MP3 files (temp.mp3, {episode}_temp.mp3, backup.mp3, etc.)
-- ❌ NEVER use ffmpeg to create new MP3 files (ffmpeg -i input.mp3 output.mp3)
-- ❌ NEVER copy the MP3 file before editing
-- ✅ ONLY use eyeD3 Python API for in-place editing
-- ✅ ONLY use Read tool to access transcript (no file operations)
-- ✅ Edit the original MP3 file directly with tag.save(mp3_file)
+**絶対に中間ファイルを作成しないこと:**
+- ❌ 一時MP3ファイルを作成してはいけない (temp.mp3, {episode}_temp.mp3, backup.mp3など)
+- ❌ ffmpegで新しいMP3ファイルを作成してはいけない (ffmpeg -i input.mp3 output.mp3)
+- ❌ 編集前にMP3ファイルをコピーしてはいけない
+- ✅ eyeD3 Python APIでインプレース編集のみ使用すること
+- ✅ トランスクリプトアクセスにはReadツールのみ使用（ファイル操作なし）
+- ✅ 元のMP3ファイルをtag.save(mp3_file)で直接編集すること
 
-If you find yourself about to create ANY file other than reading/writing the original MP3 in-place, STOP and reconsider your approach.
+インプレースでの元のMP3の読み書き以外のファイル作成をしようとしている場合は、停止してアプローチを再考すること。
