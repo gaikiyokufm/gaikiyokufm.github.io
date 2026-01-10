@@ -51,13 +51,23 @@ def main():
         chapters.append((int(start_ms_str), chapter_title))
 
     # Add chapters with calculated end times using bytes element_id
+    chapter_ids = []
     for i, (start_ms, chapter_title) in enumerate(chapters):
         end_ms = chapters[i+1][0] if i+1 < len(chapters) else audio_duration_ms
         # Use bytes for element_id to avoid TypeError
-        element_id = f"chap{i}".encode('utf-8')
+        element_id = f"chp{i}".encode('utf-8')
         # Set chapter with times, then set title via sub_frames
         chapter_frame = tag.chapters.set(element_id, (start_ms, end_ms))
         chapter_frame.title = chapter_title
+        chapter_ids.append(element_id)
+
+    # Add Table of Contents (CTOC) to link all chapters
+    # This is what makes Forecast show the Duration checkbox as checked
+    tag.table_of_contents.set(
+        b'toc',
+        child_ids=chapter_ids,
+        description=u''
+    )
 
     # Save in-place
     tag.save(mp3_file, version=(2, 4, 0))  # Use ID3v2.4
