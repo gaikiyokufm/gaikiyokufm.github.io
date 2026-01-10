@@ -54,7 +54,7 @@ PADDING=4
 - 正の整数である必要があります
 - 無効な場合、エラーを表示: "Invalid episode number. Please provide a numeric episode number (e.g., 65)"
 
-### 2. ファイルの存在確認
+### 2. ファイルパスの構築
 
 ファイルパスを構築（エピソード番号を4桁にゼロパディング）:
 ```
@@ -64,10 +64,11 @@ json_file="${PROJECT_ROOT}/${TRANSCRIPT_DIR}/${FILE_PREFIX}-{episode_number_padd
 
 例: エピソード65 → `/Users/shidetake/git/gaikiyokufm.github.io/audio/gaikiyokufm-0065.mp3` と `.../audio/transcript/gaikiyokufm-0065.json`
 
-両方のファイルが存在することを確認:
-- mp3が見つからない場合: "MP3 file not found: {mp3_file}"
-- jsonが見つからない場合: "Transcript file not found: {json_file}"
-- エピソード番号の確認を提案
+**⚠️ 重要: ファイル存在確認の方法**
+- **Bashスクリプトで存在確認をしないこと** (`[ -f "$mp3_file" ]` などを使わない)
+- **次のステップ（手順3の依存関係確認、手順4のffprobe）を直接実行すること**
+- ファイルが存在しない場合、ffprobeやReadツールが自動的にエラーを返す
+- エラーが発生した場合のみ、ユーザーにファイルパスとエピソード番号の確認を提案
 
 ### 3. 依存関係の確認
 
