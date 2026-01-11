@@ -272,6 +272,40 @@ gaikiyoku.fmのエピソード{episode_number}のメタデータを生成する�
 
 例: "東京マラソン完走/ラーメン店巡り/次回の目標/トレーニング計画について話しました。"
 
+### 4. 関連リンク
+トランスクリプトの内容から、ユーザーがホームページの「関連リンク」セクションに追加できそうな項目を抽出してください。
+
+抽出すべき項目:
+- 具体的な施設名、サービス名、製品名（サウナ、レストラン、ホテル、商品など）
+- 人物やYouTubeチャンネル、ポッドキャストなど
+- 特定の出来事、イベント、番組名
+- Webサービスやアプリ
+- 企業や組織
+
+**抽出しないもの:**
+- 一般的な概念や抽象的なトピック（例: "筋肉"、"健康"）
+- 具体名がないもの（例: "近所の銭湯"）
+
+各項目について:
+- `name`: リンク先のページタイトルをベースにした表示名。以下のルールに従って命名:
+  1. リンク先のページタイトルを基本とする
+  2. 無駄なキャッチフレーズや販促文言は削除
+  3. 読み仮名（カタカナの括弧書き）はなるべく削除
+  4. 「公式」や「- Netflix」など重要な識別子は残す
+  5. 半角の `|` は `-` に置き換える
+  6. 全角記号は半角に変換（全角ハイフン「ー」→半角ハイフン「-」など）
+  7. シンプルで分かりやすい表記にする
+- `search_query`: その項目を検索する際に使用するキーワード（日本語と英語を両方含めても可）
+
+例:
+```json
+[
+  {"name": "免疫チェック", "search_query": "免疫チェック 明治"},
+  {"name": "FAT FIRE3カ月の夫に「離婚」を突きつけた - 真矢", "search_query": "FAT FIRE 離婚 真矢 note"},
+  {"name": "ラブ上等 - Netflix", "search_query": "ラブ上等 Netflix"}
+]
+```
+
 ## 出力形式
 
 以下の正確な構造のJSONオブジェクトのみを返してください:
@@ -282,7 +316,10 @@ gaikiyoku.fmのエピソード{episode_number}のメタデータを生成する�
     {"start_ms": 0, "title": "チャプター1"},
     {"start_ms": 600000, "title": "チャプター2"}
   ],
-  "summary": "トピック1/トピック2/トピック3について話しました。"
+  "summary": "トピック1/トピック2/トピック3について話しました。",
+  "related_links": [
+    {"name": "項目名", "search_query": "検索ワード"}
+  ]
 }
 
 重要な注意事項:
@@ -292,6 +329,7 @@ gaikiyoku.fmのエピソード{episode_number}のメタデータを生成する�
   - 話者名は不可: ❌ "飯崎の1位: ラカンの湯"
   - アイテムのみ: ✅ "ラカンの湯"
 - 非ランキングエピソードの場合: 通常通り説明的なトピックタイトルを使用
+- related_linksは空の配列でも可（関連リンクが見つからない場合）
 
 マークダウンコードブロック、説明、追加テキストは含めないでください - JSONオブジェクトのみ。
 ```
@@ -299,12 +337,14 @@ gaikiyoku.fmのエピソード{episode_number}のメタデータを生成する�
 Claudeからの JSON レスポンスを解析します。
 
 レスポンスを検証:
-- `title`, `chapters`, `summary`, `ranking_mode` フィールドを持つこと
+- `title`, `chapters`, `summary`, `ranking_mode`, `related_links` フィールドを持つこと
 - `ranking_mode` はブール値（true または false）であること
 - `chapters` は少なくとも2要素の配列であること
 - 最初のチャプターは0から開始すること
 - 全ての start_ms 値が有効な整数であること
 - チャプターのタイムスタンプが昇順であること
+- `related_links` は配列であること（空でも可）
+- 各related_link項目は `name` と `search_query` フィールドを持つこと（`url`はStep 7.5で追加される）
 
 検証が失敗した場合、詳細を含むエラーを表示します。
 
@@ -321,7 +361,83 @@ Chapters ({count}):
 
 Summary:
 {summary}
+
+Related Links ({count}):
+{For each link:}
+- [{name}]({placeholder_url})
+  検索ワード: {search_query}
 ```
+
+### 7.5. 関連リンクのURL検索
+
+AIが生成したrelated_links配列の各項目について、実際のURLを検索します。
+
+**重要: このステップはrelated_links配列が空でない場合のみ実行します。**
+
+各related_link項目について以下の処理を実行:
+
+1. **WebSearchツールでsearch_queryを検索**
+   ```
+   WebSearch(query="{search_query}")
+   ```
+
+2. **上位3件の検索結果を取得**
+   - 各結果から: タイトル、URL、説明（snippet）を抽出
+   - 検索結果が3件未満の場合はその件数分を使用
+   - 検索が失敗した場合は次の項目へスキップし、警告を記録
+
+3. **Claudeに最適なURLを選択させる**
+
+   以下のプロンプトを使用:
+   ```
+   以下の関連リンク項目について、Web検索結果から最も適切なURLを選択してください。
+
+   項目: {name}
+   検索クエリ: {search_query}
+
+   検索結果（上位3件）:
+   1. {title1} - {url1}
+      説明: {snippet1}
+   2. {title2} - {url2}
+      説明: {snippet2}
+   3. {title3} - {url3}
+      説明: {snippet3}
+
+   【選択基準 - 優先順位順】
+   1. 公式サイト（最優先）
+   2. 公式SNSアカウント（Twitter/X, Instagram, YouTubeなど）
+   3. note.com
+   4. ITメディアなどのリンク切れを起こしにくいニュースメディア
+   5. 個人ブログ
+   6. NHKや朝日新聞などのペイウォールがあったり、すぐにリンク切れを起こすレガシーニュースサイト（最低優先）
+
+   最も関連性が高く、かつ上記の優先順位が高いURLの番号のみを返してください（1, 2, または 3）。
+   どれも適切でない場合は "NONE" を返してください。
+   ```
+
+4. **URL選択ロジック**
+   - AIが "1", "2", "3" を返した場合: 対応する検索結果のURLを使用
+   - AIが "NONE" を返した場合: "URL_HERE" を設定し、警告リストに追加
+   - AI応答が不正な場合（1/2/3/NONE以外）: "URL_HERE" を設定し、警告リストに追加
+   - 検索結果が0件の場合: "URL_HERE" を設定し、警告リストに追加
+
+5. **選択されたURLをrelated_link項目に追加**
+   - 各項目に `"url"` フィールドを追加
+
+処理完了後の表示:
+```
+Searching URLs for related links...
+✓ Los Angeles Athletic Club: https://www.athleticclub.com
+✓ OMO7 高知: https://hoshinoresorts.com/omo7-kochi
+⚠️ ゆるーむ: URL not found, using placeholder
+...
+Found URLs for {success_count}/{total_count} items
+```
+
+**エラーハンドリング:**
+- Web検索が完全に失敗した場合: 全ての項目に "URL_HERE" を設定し、警告を表示
+- 個別の検索失敗: その項目のみ "URL_HERE" を設定し、処理を続行
+- related_links配列が空の場合: このステップ全体をスキップ
 
 ### 8. MP3にメタデータを適用
 
@@ -392,6 +508,27 @@ Episode {episode_number} metadata has been added:
 - Summary keywords added
 
 You can now play the MP3 to see chapters in your podcast player!
+
+---
+関連リンク検索ワード候補:
+{For each link:}
+- {name}: "{search_query}"
+
+---
+関連リンク候補（_postsのマークダウンファイルにコピペしてください）:
+
+## 関連リンク
+{For each link:}
+{If url != "URL_HERE":}
+- [{name}]({url})
+{Else:}
+- [{name}](URL_HERE)  ⚠️ URL要手動追加
+
+{If there are any links with url == "URL_HERE":}
+
+⚠️ 以下の項目はURLが見つかりませんでした（手動で追加してください）:
+{For each link with url == "URL_HERE":}
+- {name}: 検索ワード "{search_query}"
 ```
 
 ## エラーハンドリング
