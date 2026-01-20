@@ -508,28 +508,15 @@ Episode {episode_number} metadata has been added:
 - Summary keywords added
 
 You can now play the MP3 to see chapters in your podcast player!
-
----
-関連リンク検索ワード候補:
-{For each link:}
-- {name}: "{search_query}"
-
----
-関連リンク候補（_postsのマークダウンファイルにコピペしてください）:
-
-## 関連リンク
-{For each link:}
-{If url != "URL_HERE":}
-- [{name}]({url})
-{Else:}
-- [{name}](URL_HERE)  ⚠️ URL要手動追加
-
-{If there are any links with url == "URL_HERE":}
-
-⚠️ 以下の項目はURLが見つかりませんでした（手動で追加してください）:
-{For each link with url == "URL_HERE":}
-- {name}: 検索ワード "{search_query}"
 ```
+
+### 関連リンク出力（必須）
+
+**⚠️ 重要: `.claude/templates/related-links-output.md` を読み、そのテンプレートの形式に厳密に従って出力すること。**
+
+- 2つのセクション（直接貼り付け用、検索ワードリスト）を必ず両方出力
+- フォーマットは一切省略・変更しない
+- テンプレートの出力例を参考にすること
 
 ## エラーハンドリング
 
