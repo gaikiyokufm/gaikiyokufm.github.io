@@ -48,7 +48,5 @@ apply_replacements() {
     echo "処理完了: $file"
 }
 
-# 各形式のファイルに対して置換を実行
-for ext in json srt vtt txt tsv; do
-    apply_replacements "${BASENAME}.${ext}"
-done
+# JSONファイルに対して置換を実行
+apply_replacements "${BASENAME}.json"
