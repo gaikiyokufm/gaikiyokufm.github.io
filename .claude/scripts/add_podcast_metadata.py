@@ -35,8 +35,6 @@ def main():
 
     # Set text metadata
     tag.title = title
-    tag.album = "gaikiyoku.fm"
-    tag.artist = "gaikiyoku.fm"
     tag.comments.set(summary)
     tag.lyrics.set(summary)  # Add lyrics for Forecast duration checkbox
 
