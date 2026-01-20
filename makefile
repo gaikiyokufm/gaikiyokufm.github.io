@@ -66,7 +66,7 @@ algolia:
 whisper: $(TRANSCRIPT_FILES)
 
 audio/transcript/%.json: audio/%.mp3
-	whisper --model large --language Japanese --output_dir audio/transcript $<
+	whisper --model large --language Japanese --initial_prompt "$$(cat whisper_prompt.txt)" --output_dir audio/transcript $<
 
 twitter:
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
