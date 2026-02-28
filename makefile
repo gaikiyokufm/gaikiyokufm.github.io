@@ -16,7 +16,7 @@ help:
 	@echo make metadata          : add metadata \(chapters, title, summary\)
 	@echo make post              : create post for new mp3
 	@echo make local             : local test
-	@echo make twitter           : create twitter post
+	@echo make x                 : create x post
 	@echo make algolia           : create algolia index
 
 post:
@@ -70,7 +70,7 @@ audio/transcript/%.json: audio/%.mp3
 	mlx_whisper --model mlx-community/whisper-large-v3-turbo --language Japanese --output-format json --initial-prompt "$$(cat whisper_prompt.txt)" --output-dir audio/transcript $<
 	./scripts/postprocess_transcript.sh audio/transcript/$*
 
-twitter:
+x:
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
 	@echo $(NEWEST_EP_NUM). $(TITLE)
 	@echo
