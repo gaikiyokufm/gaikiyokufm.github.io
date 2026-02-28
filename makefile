@@ -7,6 +7,7 @@ NEWEST_AUDIO_FILE := $(shell ls -1 audio/gaikiyokufm* | tail -1)
 NEWEST_POST := $(shell ls -1 _posts/[0-9]* | tail -1)
 AUDIO_FILES := $(wildcard audio/gaikiyokufm*.mp3)
 TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.json,$(AUDIO_FILES))
+MISSING_TRANSCRIPT_FILES := $(filter-out $(wildcard audio/transcript/gaikiyokufm*.json),$(TRANSCRIPT_FILES))
 
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
@@ -63,7 +64,7 @@ algolia:
 	bundle exec jekyll algolia
 	git co _posts/20*.md
 
-whisper: $(TRANSCRIPT_FILES)
+whisper: $(MISSING_TRANSCRIPT_FILES)
 
 audio/transcript/%.json: audio/%.mp3
 	whisper --model large --language Japanese --output_format json --initial_prompt "$$(cat whisper_prompt.txt)" --output_dir audio/transcript $<
