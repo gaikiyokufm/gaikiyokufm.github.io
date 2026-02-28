@@ -67,7 +67,7 @@ algolia:
 whisper: $(MISSING_TRANSCRIPT_FILES)
 
 audio/transcript/%.json: audio/%.mp3
-	whisper --model large --language Japanese --output_format json --initial_prompt "$$(cat whisper_prompt.txt)" --output_dir audio/transcript $<
+	mlx_whisper --model mlx-community/whisper-large-v3-turbo --language Japanese --output-format json --initial-prompt "$$(cat whisper_prompt.txt)" --output-dir audio/transcript $<
 	./scripts/postprocess_transcript.sh audio/transcript/$*
 
 twitter:
