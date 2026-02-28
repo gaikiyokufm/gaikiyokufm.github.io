@@ -12,11 +12,11 @@ MISSING_TRANSCRIPT_FILES := $(filter-out $(wildcard audio/transcript/gaikiyokufm
 help:
 	@echo make split ARG=hoge.wav: split stereo to mono
 	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
+	@echo make whisper           : create transcript
 	@echo make metadata          : add metadata \(chapters, title, summary\)
 	@echo make post              : create post for new mp3
 	@echo make local             : local test
 	@echo make twitter           : create twitter post
-	@echo make whisper           : create transcript
 	@echo make algolia           : create algolia index
 
 post:
