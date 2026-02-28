@@ -46,7 +46,7 @@ mp3:
 	eyeD3 --add-image images/artwork.jpg:FRONT_COVER --title "$(NEXT_EP_NUM). " --comment "//について話しました。" --album "gaikiyoku.fm" audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 
 metadata:
-	claude --print "/podcast-metadata $(NEXT_EP_NUM)"
+	claude --print "/add-metadata $(NEXT_EP_NUM)"
 
 local:
 	open http://localhost:4000/
