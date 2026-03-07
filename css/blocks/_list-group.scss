@@ -1,3 +1,28 @@
+.load-more-container {
+  padding: 16px;
+  text-align: center;
+}
+
+.load-more-button {
+  background-color: transparent;
+  border: 1px solid $color-text-dark-hint;
+  border-radius: 4px;
+  color: $color-text-dark-secondary;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 8px 24px;
+
+  &:hover {
+    border-color: $color-text-dark-secondary;
+    color: $color-text-dark-primary;
+  }
+
+  &.htmx-request {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
 .list-group-element {
   color: $color-text-dark-primary;
   display: block;

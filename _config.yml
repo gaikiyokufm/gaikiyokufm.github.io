@@ -31,8 +31,11 @@ timezone: Asia/Tokyo
 title: gaikiyoku.fm
 url: https://gaikiyoku.fm
 domain: gaikiyoku.fm
+paginate: 40
+paginate_path: "/page:num/"
 plugins:
   - jekyll-sitemap
+  - jekyll-paginate
 algolia:
   application_id: KGAVPIMSEP
   index_name: gaikiyokufm

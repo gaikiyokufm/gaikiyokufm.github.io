@@ -4,29 +4,45 @@ layout: default
 
 <div class="container">
   <div class="card">
-    {% for post in site.posts %}
-      <article class="list-group-element">
-        <h1 class="list-group-element-heading">
-          <a href="{{ post.url | prepend:site.github.url }}">{{ post.title | escape }}</a>
-        </h1>
-        <footer class="list-group-element-footer">
-          {{ post.date | date: "%Y年%m月%d日" }}
-        </footer>
-        <p>
-          {{ post.description }}
-        </p>
-        <div class="list-group-element-images">
-          {% for actor_id in post.actor_ids %}
-            {% assign actor = site.actors[actor_id] %}
-            {% if actor.image_url contains 'gravatar' %}
-              {% assign img_url = actor.image_url %}
-            {% else %}
-              {% assign img_url = actor.image_url | prepend:site.github.url %}
-            {% endif %}
-            <img src="{{ img_url }}" alt="{{ actor.name }}" class="list-group-element-images-element" width="40" height="40">
-          {% endfor %}
-        </div>
-      </article>
-    {% endfor %}
+    <div id="episode-list">
+      {% for post in paginator.posts %}
+        <article class="list-group-element">
+          <h1 class="list-group-element-heading">
+            <a href="{{ post.url | prepend:site.github.url }}">{{ post.title | escape }}</a>
+          </h1>
+          <footer class="list-group-element-footer">
+            {{ post.date | date: "%Y年%m月%d日" }}
+          </footer>
+          <p>
+            {{ post.description }}
+          </p>
+          <div class="list-group-element-images">
+            {% for actor_id in post.actor_ids %}
+              {% assign actor = site.actors[actor_id] %}
+              {% if actor.image_url contains 'gravatar' %}
+                {% assign img_url = actor.image_url %}
+              {% else %}
+                {% assign img_url = actor.image_url | prepend:site.github.url %}
+              {% endif %}
+              <img src="{{ img_url }}" alt="{{ actor.name }}" class="list-group-element-images-element" width="40" height="40">
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <div id="load-more-container">
+      {% if paginator.next_page %}
+      <button class="load-more-button"
+              hx-get="{{ paginator.next_page_path }}"
+              hx-target="#episode-list"
+              hx-swap="beforeend"
+              hx-select="article.list-group-element"
+              hx-select-oob="#load-more-container">
+        Load More Episodes
+      </button>
+      {% endif %}
+    </div>
   </div>
 </div>
+
+<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
