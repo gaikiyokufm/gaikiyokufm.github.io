@@ -10,13 +10,19 @@ description: 外気浴しながらあれこれ話す
 description_long: 外気浴しながらあれこれ話す
 email: hello@gaikiyoku.fm
 exclude:
+  - CLAUDE.md
   - docker
   - docker-compose.yml
   - Gemfile
   - Gemfile.lock
   - LICENSE.txt
+  - makefile
   - README.md
+  - scripts
+  - template.md
   - vendor
+  - whisper_prompt.txt
+  - whisper_replacements.tsv
 google_analytics: G-EXSYYCEXY1
 hashtag: gaikiyokufm
 itunes_podcast_url: https://podcasts.apple.com/us/podcast/gaikiyoku-fm/id1598934840
