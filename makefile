@@ -10,14 +10,14 @@ TRANSCRIPT_FILES := $(patsubst audio/%.mp3,audio/transcript/%.json,$(AUDIO_FILES
 MISSING_TRANSCRIPT_FILES := $(filter-out $(wildcard audio/transcript/gaikiyokufm*.json),$(TRANSCRIPT_FILES))
 
 help:
-	@echo make split ARG=hoge.wav: split stereo to mono
-	@echo make mp3 ARG=hoge.wav  : convert wav to mp3
-	@echo make whisper           : create transcript
-	@echo make metadata          : add metadata \(chapters, title, summary\)
-	@echo make post              : create post for new mp3
-	@echo make local             : local test
-	@echo make x                 : create x post
-	@echo make algolia           : create algolia index
+	@echo "make split ARG=hoge.wav                  : split stereo to mono"
+	@echo "make mp3 ARG=hoge.wav                    : convert wav to mp3"
+	@echo "make whisper [MODEL=large|mlx|turbo]     : create transcript (most accurate: large, balanced: mlx [default], fastest: turbo)"
+	@echo "make metadata                            : add metadata (chapters, title, summary)"
+	@echo "make post                                : create post for new mp3"
+	@echo "make local                               : local test"
+	@echo "make x                                   : create x post"
+	@echo "make algolia                             : create algolia index"
 
 post:
 	$(eval TODAY := $(shell date +%Y-%m-%d))
@@ -64,10 +64,21 @@ algolia:
 	bundle exec jekyll algolia
 	git co _posts/20*.md
 
+MODEL ?= mlx
+WHISPER_MLX_OPTS = --language Japanese --output-format json --initial-prompt "$$(cat whisper_prompt.txt)" --output-dir audio/transcript
+
+ifeq ($(MODEL),large)
+WHISPER_CMD = whisper --model large --language Japanese --output_format json --initial_prompt "$$(cat whisper_prompt.txt)" --output_dir audio/transcript
+else ifeq ($(MODEL),turbo)
+WHISPER_CMD = mlx_whisper --model mlx-community/whisper-large-v3-turbo $(WHISPER_MLX_OPTS)
+else
+WHISPER_CMD = mlx_whisper --model mlx-community/whisper-large-v3-mlx $(WHISPER_MLX_OPTS)
+endif
+
 whisper: $(MISSING_TRANSCRIPT_FILES)
 
 audio/transcript/%.json: audio/%.mp3
-	mlx_whisper --model mlx-community/whisper-large-v3-turbo --language Japanese --output-format json --initial-prompt "$$(cat whisper_prompt.txt)" --output-dir audio/transcript $<
+	$(WHISPER_CMD) $<
 	./scripts/postprocess_transcript.sh audio/transcript/$*
 
 x:
