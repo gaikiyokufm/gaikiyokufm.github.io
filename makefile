@@ -23,7 +23,7 @@ post:
 	$(eval TODAY := $(shell date +%Y-%m-%d))
 	$(eval NEW_FILENAME := _posts/$(TODAY)-$(NEXT_EP_NUM).md)
 	$(eval AUDIO_FILENAME := audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3)
-	$(eval DURATION := $(shell sox --i -d $(AUDIO_FILENAME) | sed -e "s/\.[0-9]*//"))
+	$(eval DURATION := $(shell ffprobe -v quiet -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $(AUDIO_FILENAME) | awk '{s=int($$1); printf "%02d:%02d:%02d", s/3600, (s%3600)/60, s%60}'))
 	$(eval FILESIZE := $(shell ls -l $(AUDIO_FILENAME) | awk '{print $$5}'))
 	$(eval TITLE := $(shell ffprobe $(AUDIO_FILENAME) 2>&1 | grep title | head -1 | awk '{for(i = 4; i <= NF - 1; i++) printf "%s ", $$i; print $$NF}'))
 	$(eval DESCRIPTION := $(shell ffprobe -v quiet -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 $(AUDIO_FILENAME)))
