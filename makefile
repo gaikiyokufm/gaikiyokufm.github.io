@@ -92,3 +92,13 @@ x:
 	@echo https://gaikiyoku.fm/episode/$(EP_NUM)
 	@echo -n \#gaikiyokufm
 
+x-check:
+	@make x 2>/dev/null | python3 -c "\
+	import sys, re, unicodedata; \
+	text = sys.stdin.read().strip(); \
+	urls = re.findall(r'https?://\S+', text); \
+	plain = re.sub(r'https?://\S+', '', text); \
+	weight = sum(2 if unicodedata.east_asian_width(c) in ('F','W') else 1 for c in plain) + 23 * len(urls); \
+	print(f'文字数(weighted): {weight}/280'); \
+	print('OK: 投稿可能です') if weight <= 280 else print(f'NG: {weight - 280} オーバーしています')"
+
