@@ -82,11 +82,13 @@ audio/transcript/%.json: audio/%.mp3
 	./scripts/postprocess_transcript.sh audio/transcript/$*
 
 x:
+	$(eval EP_NUM := $(shell echo $(NEWEST_AUDIO_FILE) | sed -e 's/.*gaikiyokufm-0*//' -e 's/\.mp3//'))
 	$(eval TITLE := $(shell ffprobe $(NEWEST_AUDIO_FILE) 2>&1 | grep title | head -1 | awk '{for (i=4; i<=NF; i++) print $$i}'))
-	@echo $(NEWEST_EP_NUM). $(TITLE)
+	$(eval DESCRIPTION := $(shell ffprobe -v quiet -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 $(NEWEST_AUDIO_FILE)))
+	@echo $(EP_NUM). $(TITLE)
 	@echo
-	@cat $(NEWEST_POST) | grep description | awk '{sub(/description: /, ""); print}'
+	@echo $(DESCRIPTION)
 	@echo
-	@echo https://gaikiyoku.fm/episode/$(NEWEST_EP_NUM)
+	@echo https://gaikiyoku.fm/episode/$(EP_NUM)
 	@echo -n \#gaikiyokufm
 
