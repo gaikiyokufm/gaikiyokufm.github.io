@@ -11,6 +11,7 @@ MISSING_TRANSCRIPT_FILES := $(filter-out $(wildcard audio/transcript/gaikiyokufm
 
 help:
 	@echo "make split ARG=hoge.wav                  : split stereo to mono"
+	@echo "make level ARG=hoge.wav                  : normalize loudness with auphonic"
 	@echo "make mp3 ARG=hoge.wav                    : convert wav to mp3"
 	@echo "make whisper [MODEL=large|mlx|turbo]     : create transcript (most accurate: large, balanced: mlx [default], fastest: turbo)"
 	@echo "make metadata                            : add metadata (chapters, title, summary)"
@@ -40,6 +41,14 @@ post:
 split:
 	@sox ${ARG} -c 1 ${ARG:.wav=}-left.wav remix 1
 	@sox ${ARG} -c 1 ${ARG:.wav=}-right.wav remix 2
+
+level:
+	$(eval OUTDIR := $(dir ${ARG}))
+	$(eval BASE := $(basename $(notdir ${ARG})))
+	$(eval CLEAN := $(OUTDIR).$(BASE)-clean.wav)
+	ffmpeg -v error -y -i ${ARG} -c:a copy -map_metadata -1 -map_chapters -1 -fflags +bitexact "$(CLEAN)"
+	auphonic process "$(CLEAN)" --title="" --loudness=-16 --leveler=false --filtering=false --denoise=false --output format=wav,filename=$(BASE)-auphonic.wav --download --download-dir $(OUTDIR) --wait
+	rm -f "$(CLEAN)"
 
 mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
