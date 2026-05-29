@@ -518,6 +518,61 @@ You can now play the MP3 to see chapters in your podcast player!
 - フォーマットは一切省略・変更しない
 - テンプレートの出力例を参考にすること
 
+### 関連リンクをChromeで開く（必須）
+
+関連リンク出力の表示に加え、`related_links` の全項目をGoogle Chromeで開きます。
+
+**仕様:**
+- 各項目について、`url` が `URL_HERE` 以外の場合はそのURLを使用
+- `url` が `URL_HERE` の場合は `https://www.google.com/search?q={URLエンコード済みのsearch_query}` を使用
+- Chromeが起動していない場合: Chromeを起動し、全URLを別々のタブで開く（単一ウィンドウ）
+- Chromeがすでに起動している場合: **バックグラウンドで** 新規ウィンドウを作成し、全URLを別々のタブで開く（現在のフォアグラウンドアプリは切り替えない）
+- `related_links` が空配列の場合はこのステップ全体をスキップ
+
+**実装:**
+
+以下のbashコマンドを実行してください。`urls` 配列にはURL（または `URL_HERE` の場合はGoogle検索URL）を全て格納します。
+
+```bash
+# urls=(...) を related_links から構築:
+#   - url が URL_HERE 以外 → url をそのまま使用
+#   - url が URL_HERE     → "https://www.google.com/search?q=" + URLエンコードした search_query
+# 例:
+# urls=(
+#   "https://www.athleticclub.com"
+#   "https://hoshinoresorts.com/omo7-kochi"
+#   "https://www.google.com/search?q=FAT%20FIRE%20%E9%9B%A2%E5%A9%9A%20%E7%9C%9F%E7%9F%A2%20note"
+# )
+
+if [ ${#urls[@]} -eq 0 ]; then
+  echo "No related links to open."
+else
+  if pgrep -x "Google Chrome" > /dev/null 2>&1; then
+    # Chromeは起動中 → AppleScriptでバックグラウンドに新規ウィンドウを作成
+    applescript='tell application "Google Chrome"
+  set newWindow to make new window
+  set URL of active tab of newWindow to "'"${urls[0]}"'"'
+    for url in "${urls[@]:1}"; do
+      applescript+='
+  tell newWindow to make new tab with properties {URL:"'"$url"'"}'
+    done
+    applescript+='
+end tell'
+    osascript -e "$applescript" > /dev/null
+    echo "✓ Opened ${#urls[@]} links in a new Chrome window (background)"
+  else
+    # Chrome未起動 → 通常起動して全URLをタブで開く
+    open -a "Google Chrome" "${urls[@]}"
+    echo "✓ Launched Chrome with ${#urls[@]} tabs"
+  fi
+fi
+```
+
+**注意事項:**
+- URLに含まれる可能性のあるダブルクォート `"` はAppleScriptを壊すため、URLにダブルクォートが含まれる場合は事前に `\"` にエスケープすること（通常のURLには含まれないが念のため）
+- `search_query` をGoogle検索URLに変換する際は、必ずURLエンコード（スペースは `%20` または `+`、日本語はパーセントエンコード）を行うこと
+- `pgrep -x "Google Chrome"` でChrome起動状態を判定（完全一致）
+
 ## エラーハンドリング
 
 以下のエラーシナリオを適切に処理してください:
