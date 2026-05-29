@@ -18,6 +18,7 @@ help:
 	@echo "make post                                : create post for new mp3"
 	@echo "make local                               : local test"
 	@echo "make x                                   : create x post"
+	@echo "make x-check                             : check x post character count"
 	@echo "make algolia                             : create algolia index"
 
 post:
@@ -109,5 +110,5 @@ x-check:
 	plain = re.sub(r'https?://\S+', '', text); \
 	weight = sum(2 if unicodedata.east_asian_width(c) in ('F','W') else 1 for c in plain) + 23 * len(urls); \
 	print(f'文字数(weighted): {weight}/280'); \
-	print('OK: 投稿可能です') if weight <= 280 else print(f'NG: {weight - 280} オーバーしています')"
+	print(f'OK: 投稿可能です（残り {280 - weight} 文字）') if weight <= 280 else print(f'NG: {weight - 280} オーバーしています')"
 
