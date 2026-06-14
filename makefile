@@ -46,10 +46,7 @@ split:
 level:
 	$(eval OUTDIR := $(dir ${ARG}))
 	$(eval BASE := $(basename $(notdir ${ARG})))
-	$(eval CLEAN := $(OUTDIR).$(BASE)-clean.wav)
-	ffmpeg -v error -y -i ${ARG} -c:a copy -map_metadata -1 -map_chapters -1 -fflags +bitexact "$(CLEAN)"
-	auphonic process "$(CLEAN)" --title="" --loudness=-16 --leveler=false --filtering=false --denoise=false --output format=wav,filename=$(BASE)-auphonic.wav --download --download-dir $(OUTDIR) --wait
-	rm -f "$(CLEAN)"
+	auphonic process ${ARG} --title="" --loudness=-16 --leveler=false --filtering=false --denoise=false --output format=wav,filename=$(BASE)-auphonic.wav --download --download-dir $(OUTDIR) --wait
 
 mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
