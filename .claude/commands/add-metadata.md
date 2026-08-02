@@ -1,4 +1,5 @@
 ---
+name: add-metadata
 description: gaikiyoku.fmのポッドキャストMP3ファイルにメタデータ（チャプター、タイトル、サマリー）を生成して追加
 argument-hint: <エピソード番号>
 ---
