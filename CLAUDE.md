@@ -33,6 +33,10 @@ make split ARG=episode.wav
 # Whisperを使用してトランスクリプトを生成
 make whisper
 
+# メタデータ（チャプター、タイトル、サマリー）を追加（デフォルト: agy、または AGENT=claude）
+make metadata
+make metadata AGENT=claude
+
 # トランスクリプトでAlgolia検索インデックスを更新
 make algolia
 

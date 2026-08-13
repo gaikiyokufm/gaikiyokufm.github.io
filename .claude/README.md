@@ -47,13 +47,18 @@ make whisper
 
 ### 3. 詳細なメタデータを追加
 ```bash
+# デフォルト (agy を使用)
 make metadata
+
+# または claude を使用
+make metadata AGENT=claude
 ```
 
 または直接:
 ```bash
-claude
-> /add-metadata 66
+agy --print "/add-metadata 66"
+# または
+claude --print "/add-metadata 66"
 ```
 
 これによりトランスクリプトを分析し、詳細なメタデータ（チャプター、タイトル、サマリー）が追加されます。

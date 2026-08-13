@@ -14,7 +14,7 @@ help:
 	@echo "make level ARG=hoge.wav                  : normalize loudness with auphonic"
 	@echo "make mp3 ARG=hoge.wav                    : convert wav to mp3"
 	@echo "make whisper [MODEL=large|mlx|turbo]     : create transcript (most accurate: large, balanced: mlx [default], fastest: turbo)"
-	@echo "make metadata                            : add metadata (chapters, title, summary)"
+	@echo "make metadata [AGENT=agy|claude]         : add metadata (chapters, title, summary) (default: agy)"
 	@echo "make post                                : create post for new mp3"
 	@echo "make local                               : local test"
 	@echo "make x                                   : create x post"
@@ -52,8 +52,11 @@ mp3:
 	lame --noreplaygain -q 2 --cbr -b 64 -m m --resample 44.1 --add-id3v2 ${ARG} audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 	eyeD3 --add-image images/artwork.jpg:FRONT_COVER --title "$(NEXT_EP_NUM). " --comment "//について話しました。" --album "gaikiyoku.fm" audio/gaikiyokufm-$(NEXT_EP_NUM_PAD).mp3
 
+AGENT ?= agy
+CLI ?= $(AGENT)
+
 metadata:
-	claude --print "/add-metadata $(NEXT_EP_NUM)"
+	$(CLI) --print "/add-metadata $(NEXT_EP_NUM)"
 
 local:
 	open http://localhost:4000/
