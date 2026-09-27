@@ -63,6 +63,7 @@ local:
 	bundle exec jekyll serve -I
 
 algolia:
+	@git diff --quiet -- _posts || (echo "_posts に未コミットの変更があります。コミットするか元に戻してから実行してください。" && exit 1)
 	for i in audio/transcript/*.json; do\
 		echo "\n## 文字起こし\n" >> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
 		cat $${i} |\
@@ -71,8 +72,7 @@ algolia:
 							(.seek/100/60/60%24|tostring) + ":" + (.seek/100/60%60|tostring) + ":" + (.seek/100%60|tostring),.text'\
 			>> `(echo $${i} | xargs basename | sed -e 's/gaikiyokufm-//g' -e 's/\.json//g' | bc  | while read line; do echo _posts/*-$${line}.md; done)`;\
 	done
-	bundle exec jekyll algolia
-	git co _posts/20*.md
+	bundle exec jekyll algolia; ret=$$?; git checkout -- _posts; exit $$ret
 
 MODEL ?= mlx
 WHISPER_MLX_OPTS = --language Japanese --output-format json --initial-prompt "$$(cat whisper_prompt.txt)" --output-dir audio/transcript
