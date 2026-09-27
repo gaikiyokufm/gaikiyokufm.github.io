@@ -56,7 +56,7 @@ AGENT ?= agy
 CLI ?= $(AGENT)
 
 metadata:
-	$(CLI) --print "/add-metadata $(NEXT_EP_NUM)"
+	$(CLI) --dangerously-skip-permissions --print "/add-metadata $(NEXT_EP_NUM)"
 
 local:
 	open http://localhost:4000/
