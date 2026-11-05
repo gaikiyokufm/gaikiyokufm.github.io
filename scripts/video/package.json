@@ -1,0 +1,8 @@
+{
+  "name": "gaikiyokufm-video",
+  "private": true,
+  "description": "Render episodes as lip-synced pixel-art videos for YouTube",
+  "dependencies": {
+    "@napi-rs/canvas": "0.1.65"
+  }
+}

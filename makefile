@@ -20,6 +20,7 @@ help:
 	@echo "make x                                   : create x post"
 	@echo "make x-check                             : check x post character count"
 	@echo "make algolia                             : create algolia index"
+	@echo "make video EP=1                          : render lip-synced pixel-art video for YouTube"
 
 post:
 	$(eval TODAY := $(shell date +%Y-%m-%d))
@@ -112,3 +113,14 @@ x-check:
 	print(f'文字数(weighted): {weight}/280'); \
 	print(f'OK: 投稿可能です（残り {280 - weight} 文字）') if weight <= 280 else print(f'NG: {weight - 280} オーバーしています')"
 
+
+# 話者分離 → 口パクの開き具合 → 動画の書き出し（出力は video/、git 管理外）
+video:
+	$(eval NUM := $(shell printf "%04d" $(EP)))
+	$(eval AUDIO := audio/gaikiyokufm-$(NUM).mp3)
+	$(eval TITLE := $(shell grep -l '^audio_file_path: /$(AUDIO)$$' _posts/*.md | head -1 | xargs sed -n 's/^title: *//p' | tr -d '"'))
+	@test -d scripts/video/node_modules || (cd scripts/video && npm ci)
+	@mkdir -p video
+	python3 scripts/video/diarize.py $(AUDIO) audio/transcript/gaikiyokufm-$(NUM).json video/gaikiyokufm-$(NUM).speakers.json
+	python3 scripts/video/levels.py $(AUDIO) video/gaikiyokufm-$(NUM).speakers.json video/gaikiyokufm-$(NUM).levels.json
+	node scripts/video/render.mjs scripts/video/stage.html video/gaikiyokufm-$(NUM).levels.json $(AUDIO) video/gaikiyokufm-$(NUM).mp4 "$(TITLE)"

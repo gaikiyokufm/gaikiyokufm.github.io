@@ -1,0 +1,818 @@
+<title>外気浴ドット絵ラフ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: the 16:9 pixel scene is the page; controls and the sprite sheet sit under it in one narrow column. */
+:root {
+  --bg: #fffdeb;        /* logo cream */
+  --surface: #ffffff;
+  --fg: #262636;        /* logo ink */
+  --muted: #6b6a78;
+  --line: #e2dfc8;
+  --kun: #50a8ff;       /* headphones */
+  --aibo: #e0663f;      /* 星川さん's red */
+  --pixel: "DotGothic16", "Hiragino Sans", monospace;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1c28; --surface: #252534; --fg: #f3f0dc; --muted: #a3a1b2; --line: #36364a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1c28; --surface: #252534; --fg: #f3f0dc; --muted: #a3a1b2; --line: #36364a;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+main { max-width: 960px; margin: 0 auto; display: grid; gap: 24px; }
+h1, h2 { font-family: var(--pixel); font-weight: 400; margin: 0; line-height: 1.3; text-wrap: balance; }
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.2rem; margin-bottom: 8px; }
+p { margin: 0; max-width: 65ch; }
+.lead { color: var(--muted); }
+header { display: grid; gap: 6px; }
+
+canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+#stage { width: 100%; max-width: 100%; aspect-ratio: 213 / 120; display: block; background: #24264f; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button, .file-btn {
+  font-family: var(--pixel); font-size: 15px; border: 2px solid var(--fg); background: var(--surface); color: var(--fg);
+  padding: 6px 14px; cursor: pointer; border-radius: 0;
+}
+button.primary { background: var(--fg); color: var(--bg); }
+button:focus-visible, .file-btn:focus-within, input:focus-visible { outline: 2px solid var(--kun); outline-offset: 2px; }
+.seg { display: flex; }
+.seg button + button { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.file-btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.thr { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.9rem; }
+.status { font-size: 0.9rem; color: var(--muted); min-height: 1.5em; }
+.status.warn { color: var(--aibo); }
+
+.meters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.meter { display: grid; gap: 4px; font-size: 0.85rem; }
+.meter .label { display: flex; justify-content: space-between; font-family: var(--pixel); color: var(--muted); }
+.bar { position: relative; height: 8px; background: var(--line); overflow: hidden; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; width: 0; }
+.bar .th { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--fg); }
+
+.sheet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.sheet figure { margin: 0; display: grid; gap: 4px; }
+.sheet canvas { width: 100%; height: auto; background: #fffdeb; border: 2px solid var(--line); }
+.sheet figcaption { font-size: 0.8rem; color: var(--muted); text-align: center; }
+@media (max-width: 560px) { .sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); } .meters { grid-template-columns: 1fr; } }
+</style>
+
+<main>
+  <header>
+    <h1>外気浴ドット絵ラフ</h1>
+    <p class="lead">森の中の湖のほとり、バレルサウナの前で焚き火を挟んで外気浴する2人。時間帯は「昼→夕方」が標準で、前半は昼、後半にかけてだんだん夕方になります。下のボタンで昼か夕方に固定もできます。右の秀竹はロゴの外気浴くんを1ドットずつ読み取って、そのまま使っています。左の星川さんは同じ絵柄で少し背を高くし、頭は赤いハットです。</p>
+  </header>
+
+  <canvas id="stage" width="1278" height="720" aria-label="湖畔のバレルサウナを背景に、焚き火を挟んで2人が外気浴しながら話すドット絵"></canvas>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="時間帯">
+      <button type="button" data-time="auto" aria-pressed="true">昼→夕方</button>
+      <button type="button" data-time="day" aria-pressed="false">昼</button>
+      <button type="button" data-time="dusk" aria-pressed="false">夕方</button>
+    </div>
+    <div class="seg" role="group" aria-label="星川さんの頭">
+      
+      
+      
+      
+    </div>
+    <button id="play" class="primary" type="button">停止</button>
+    <label class="file-btn">音声ファイルで試す
+      <input id="file" type="file" accept="audio/*">
+    </label>
+    <label class="thr" for="threshold">しきい値 <input id="threshold" type="range" min="0.02" max="0.4" step="0.01" value="0.12"></label>
+  </div>
+  <div class="status" id="status">今流れているのは擬似的な会話データです（音は出ません）。</div>
+  <div class="meters">
+    <div class="meter"><div class="label"><span>左ch → 星川</span><span id="va">0.00</span></div><div class="bar"><div class="fill" id="fa" style="background:var(--aibo)"></div><div class="th" id="ta"></div></div></div>
+    <div class="meter"><div class="label"><span>右ch → 秀竹（外気浴くん）</span><span id="vb">0.00</span></div><div class="bar"><div class="fill" id="fb" style="background:var(--kun)"></div><div class="th" id="tb"></div></div></div>
+  </div>
+
+  <section>
+    <h2>キャラの差分</h2>
+    <div class="sheet" id="sheet"></div>
+  </section>
+</main>
+
+<script>
+const LOGO = [".................D.................D...............D............", ".................D.................D..............D.D...........", "...............D.D.....D...........D..............D.............", ".......D.........D..D..............D..D...........D.............", ".....DDD..DD..DD.D.D..DD.......DD..D.D..D..D.....DDDD.D.D.D.....", "....D..D.D..D..D.DD....D.D..D.D..D.DD...D..D......D....D.D.D....", "....D..D.D..D..D.D.D...D..D.D.D..D.D.D..D..D......D....D.D.D....", ".....DDD..DD.D.D.D..D..D...D...DD..D..D..DD.D..D..D....D.D.D....", ".......D...................D....................................", "....D..D..................D.....................................", ".....DD..................D......................................"];
+const BASE = ["................................................................", "................................................................", "..............................KKKKK.............................", ".............................KBBBBBKK...........................", "............................KBBKKKBBBK..........................", "...........................KBBKKKKKKBBK.........................", "...........................KBKKKKKKKKBBK........................", "..........................KBKKKSKKKKKKBK........................", ".........................KBKKSSSKSSKKKBK........................", ".........................KBKSKSSSKSSKBBBK.......................", ".........................KBKSKSSSKSSKBBBK.......................", ".........................KBKSSSSSSSSKBBBK.......................", "..........................KKSSKKKSSSSKKK........................", "............................KSSSSSSSSSK.........................", ".............................KSSSSSSSK..........................", "..............................KKSSSKK...........................", "............................KKSSSSSSSKK.........................", "...........................KSSSSSSSSSSSKK.......................", "..........................KSSSSSSSSSSSSKGK......................", ".........................KSSSSSSSSSSSSSKGK......................", ".........................KSSKSSSSSSSKSSKGK......................", ".........................KSSKSSSSSSSKSSKGK......................", ".........................KSSKSSSSSSSKSSKGK......................", ".........................KSSKSSSSSSSKSSKGK......................", "........................KSSKKSSSSSSKSSKKGK......................", ".......................KSSKGKSSSSSKSSKGGGK......................", "......................KSSKKKKSSSSKSSKGGGGK......................", "....................KKSSKWWWWKKSKSSKGGGGGK......................", "...................KGGKKWWWWWWWKSSKGGGGGGK......................", "..................KGGKWWWWWWWWWWKKGGGGGGGK......................", ".................KGGKKKKKKWWWWWKGGGGGGKGGK......................", ".................KGGKSSSKGKKKKKKGGGGGKKGGK......................", ".................KGKSSSKGGKSSSKGGGGKK.KGGK......................", ".................KGKSSKKGGKSSKGGGGK...KGGK......................", ".................KKSSSK.KKKSSKGGKK....KGGK......................", ".................KKSSK...KSSKGGK......KGGK......................", ".................KKSSK...KSSKGGK......KGGK......................", ".................KKSSK...KSSKGGK......KGGK......................", ".................KKSSK...KSSKGGK.......KK.......................", ".................KKSSK...KSSKGGK................................", "................KSSSSK..KKSSKGGK................................", "...............KSSSSK..KSSSSKGGK................................", "................KKKK..KSSSSK.KK.................................", ".......................KKKK....................................."];
+
+(() => {
+  // ---- palette -----------------------------------------------------------
+  const PAL = {
+    K: '#111018', S: '#ffb371', P: '#ffc08a', B: '#50a8ff', W: '#ffffff', G: '#c4c4d2',
+    H: '#e0663f', h: '#a9442b', L: '#f39a6d', M: '#b23a3a',
+    
+  };
+
+  // ---- characters --------------------------------------------------------
+  // BASE covers logo rows 16..59, 64 columns. Head of the partner: cols 24..43, rows 16..28.
+  const HEAD2 = [
+    '.....KKKKKKK........',
+    '....KHHHHHHHK.......',
+    '...KHLLHHHHHHK......',
+    '...KHLHHHHHHHK......',
+    '..KHHHHHHHHHHHK.....',
+    '..KhhhhhhhhhhhK.....',
+    '..KHHHHHHHHHHHK.....',
+    'KHHHHHHHHHHHHHHHHK..',
+    'KKKKKKKKKKKKKKKKKK..',
+    '.KKKSKSSSKSSSKKK....',
+    '.KKKSKSSSKSSSKKK....',
+    '.KKKSSSSSSSSSKKK....',
+    '..KKSSKKKSSSSKK.....',
+  ];
+  const kun = BASE.map(r => r.split(''));
+  kun.name = 'kun';
+  // 星川さん: same white towel as 外気浴くん with a choice of head wear
+  function hoshi(name, dress) {
+    const grid = BASE.map(r => r.split(''));
+    dress(grid);
+    // taller: two more torso rows and one more shin row (rows below the face,
+    // so the mouth and eye indexes in pixelAt still hold)
+    grid.splice(36, 0, [...grid[36]]);
+    grid.forEach(row => row.forEach((ch, i) => { if (ch === 'S') row[i] = 'P'; }));   // slightly fairer skin
+    grid.splice(21, 0, [...grid[21]], [...grid[21]]);
+    grid.name = name;
+    return grid;
+  }
+  const overlay = head => g => head.forEach((row, r) => row.split('').forEach((ch, i) => { g[r][24 + i] = ch; }));
+  // red hat set 1px to the left on screen (星川さん is drawn mirrored, so +1 column in the grid),
+  // the outer hair column under the brim dropped and the right brim 1px longer
+  const redHat = g => {
+    overlay(HEAD2.map((row, r) => r <= 8 ? '.' + row.slice(0, -1) : row))(g);
+    for (let r = 9; r <= 11; r++) g[r][25] = '.';
+    g[7][24] = 'K'; g[7][25] = 'H'; g[8][24] = 'K';
+  };
+  const HOSHI = { hat: hoshi('hat', redHat) };
+
+  // Row indexes below are relative to row 16 of the logo.
+  function pixelAt(grid, r, c, open, blink) {
+    if (open) {
+      if (r === 12 && c >= 30 && c <= 32) return 'K';
+      if (r === 13 && c === 30) return 'K';
+      if (r === 13 && c === 31) return 'M';
+      if (r === 13 && c === 32) return 'K';
+    }
+    if (blink && r === 9 && (c === 29 || c === 33)) return grid[r][c + 1];   // skin beside the eye
+    return grid[r][c];
+  }
+
+  // Pre-render each character state to its own 64x44 canvas.
+  const cache = new Map();
+  function sprite(grid, mirror, open, blink) {
+    const key = `${grid.name}${+mirror}${+open}${+blink}`;
+    if (cache.has(key)) return cache.get(key);
+    const cv = document.createElement('canvas');
+    cv.width = 64; cv.height = grid.length;
+    const c = cv.getContext('2d');
+    for (let r = 0; r < grid.length; r++) {
+      for (let col = 0; col < 64; col++) {
+        const ch = pixelAt(grid, r, col, open, blink);
+        if (ch === '.') continue;
+        c.fillStyle = PAL[ch];
+        c.fillRect(mirror ? 63 - col : col, r, 1, 1);
+      }
+    }
+    cache.set(key, cv);
+    return cv;
+  }
+
+  // ---- helpers -----------------------------------------------------------
+  function rng(seed) {
+    return () => {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  // 213x120 at 6x: the characters take up more of the frame than in the 256x144 draft.
+  const PW = 213, PH = 120;
+  const buf = document.createElement('canvas');
+  buf.width = PW; buf.height = PH;
+  const b = buf.getContext('2d');
+  const px = (c, x, y, col, w = 1, h = 1) => { c.fillStyle = col; c.fillRect(x | 0, y | 0, w, h); };
+
+  // ---- times of day --------------------------------------------------------
+  // `dark` is how much the dusk shade covers everything except the sky,
+  // the sauna door and the area lit by the fire.
+  const THEMES = {
+    day: {
+      sky: ['#4f9de0', '#5aa6e4', '#66afe8', '#73b8eb', '#82c1ee', '#93caf0', '#a6d3f2', '#badcf3', '#cfe6f4'],
+      lake: ['#9fd0ee', '#86bfe4', '#6faed8', '#5c9cca', '#4f8cbc', '#447dad'], lakeRim: '#36658f',
+      treeline: '#2f4f45', floor: ['#3f6a4a', '#3a6244'], pine: ['#2f5a45', '#3f7258'], pineDeep: '#22463a', pineHi: '#56896a',
+      glint: '#e8f6ff', column: null, light: null,
+      clouds: true, stars: 0, glow: 0, door: '#ffc878', doorHint: '#b07a42', dark: 0, shade: '#000000', mark: '#262636', smoke: ['#f4f6fa', '#d6dce6'],
+    },
+    dusk: {
+      sky: ['#24264f', '#33316a', '#4b3c7c', '#6c4888', '#9a5689', '#c86a7f', '#ea8a74', '#f8ab73', '#ffc87e'],
+      lake: ['#c0707c', '#9a5a86', '#7a4f86', '#5f4585', '#4a3c78', '#3a336b'], lakeRim: '#2e2d5e',
+      treeline: '#1b2730', floor: ['#26392f', '#2a3f33'], pine: ['#1f3a33', '#2c4d40'], pineDeep: '#142a25', pineHi: '#3b5f4e',
+      glint: '#e79a8a', column: { x: 70, col: '#ffd890' }, light: { x: 70, y: 45, r: 6.5, core: '#fff0b8', edge: '#ffd890' },
+      clouds: false, stars: 10, glow: 1, door: '#ffc070', doorHint: '#a8703a', dark: 0.12, shade: '#2a1840', mark: '#fff4d6', smoke: ['#e6e2ee', '#b8b2cc'],
+    },
+  };
+
+  // ---- static background -------------------------------------------------
+  const bg = document.createElement('canvas');
+  bg.width = PW; bg.height = PH;
+  const g = bg.getContext('2d');
+  const mask = document.createElement('canvas');
+  mask.width = PW; mask.height = PH;
+  const FIRE_X = 92, FIRE_Y = 108;
+  const LAKE = { cx: 76, cy: 61, rx: 56, ry: 10 };
+  // rb: radius at the far end, a little smaller for perspective
+  // sits low enough that the barrel rests on the dirt, not in the trees
+  const SAUNA = { cx: 158, cy: 63, r: 20, rb: 17, back: 206 };
+  const FRONT_RX = 16;
+  const CHIMNEY_X = 196;
+  const CHIMNEY_H = 10;
+  const inLake = (x, y) => ((x - LAKE.cx) / LAKE.rx) ** 2 + ((y - LAKE.cy) / LAKE.ry) ** 2 < 1;
+  // pixels the dusk shade must leave alone (sky, lit door glass)
+  const unshaded = new Uint8Array(PW * PH);
+  let theme = THEMES.day;
+
+  function pine(c, cx, baseY, h, dark, light) {
+    for (let y = 0; y < h; y++) {
+      const tier = Math.floor(y / (h / 4));
+      const inTier = (y % Math.ceil(h / 4)) / Math.ceil(h / 4);
+      const w = Math.floor((tier * 0.6 + inTier * 1.6) * h / 9) + 1;
+      for (let x = -w; x <= w; x++) paint(cx + x, baseY - h + y, x < -w / 3 ? light : dark);
+    }
+    paint(cx, baseY, '#3b2a1e', 1, 2);
+  }
+  // the big foreground pines: drooping tiers lit from the left, a shaded underside
+  // on every tier, needle ticks and a visible trunk
+  function bigPine(cx, baseY, h, T) {
+    const [mid, light] = T.pine, deep = T.pineDeep, hi = T.pineHi;
+    const trunkH = Math.round(h * 0.07);
+    for (let y = baseY - trunkH - 2; y <= baseY + 1; y++) {
+      paint(cx - 1, y, '#4e3826'); paint(cx, y, '#3b2a1e'); paint(cx + 1, y, '#2a1d14');
+    }
+    const top = baseY - h, span = baseY - trunkH - top, n = Math.max(4, Math.round(h / 10));
+    for (let k = n - 1; k >= 0; k--) {
+      const t0 = Math.round(top + span * k / n * 0.86), t1 = Math.round(top + span * (k + 1) / n);
+      const W = h * 0.34 * (k + 1) / n + 1;
+      for (let y = t0; y <= t1; y++) {
+        const f = (y - t0) / Math.max(1, t1 - t0);
+        let w = Math.round(W * (k === 0 ? f : 0.15 + 0.85 * f ** 1.4));
+        if ((y * 7 + k * 3) % 3 === 0 && !(k === 0 && f < 0.3)) w += 1;   // ragged branch ends, not on the tip
+        for (let x = -w; x <= w; x++) {
+          if (y === t1 && Math.abs(x) > 1 && ((x + k) & 2)) continue;   // drooping tips along the hem
+          const rel = x / Math.max(1, w);
+          let col;
+          if (y >= t1 - 1) col = rel < -0.5 ? mid : (rel < -0.1 ? light : deep);
+          else if (rel < -0.6) col = f < 0.5 ? hi : light;
+          else if (rel < -0.15) col = ((x + y) & 1) && rel > -0.3 ? mid : light;
+          else if (rel < 0.45) col = (x * 13 + y * 7) % 11 === 0 ? light : mid;
+          else col = (x * 5 + y * 3) % 9 === 0 ? mid : deep;
+          paint(cx + x, y, col);
+        }
+      }
+    }
+  }
+  // paint() marks pixels as shaded; sky() and lit() mark them as exempt
+  function paint(x, y, col, w = 1, h = 1) {
+    px(g, x, y, col, w, h);
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      const X = (x | 0) + i, Y = (y | 0) + j;
+      if (X >= 0 && X < PW && Y >= 0 && Y < PH) unshaded[Y * PW + X] = 0;
+    }
+  }
+  function lit(x, y, col) { px(g, x, y, col); if (x >= 0 && x < PW && y >= 0 && y < PH) unshaded[y * PW + x] = 1; }
+
+  function paintBackground() {
+    const T = theme;
+    const rand = rng(11);
+    unshaded.fill(0);
+    // sky in hard bands with a dithered seam between each
+    const skyH = 50, band = skyH / T.sky.length;
+    for (let y = 0; y < skyH; y++) {
+      const i = Math.floor(y / band), f = (y % band) / band;
+      for (let x = 0; x < PW; x++) lit(x, y, T.sky[f > 0.75 && ((x + y) & 1) && i + 1 < T.sky.length ? i + 1 : i]);
+    }
+    for (let i = 0; i < T.stars; i++) lit(Math.floor(rand() * PW), Math.floor(rand() * 28), rand() < 0.3 ? '#ffffff' : '#c9c3e8');
+    if (T.clouds) {
+      for (const [cx, cy, w] of [[125, 12, 18], [178, 22, 13], [60, 27, 11]]) {
+        for (let x = -w; x <= w; x++) {
+          const top = Math.round(Math.sqrt(Math.max(0, 1 - (x / w) ** 2)) * 4 + Math.sin(x / 2.5) * 1.2);
+          for (let y = -top; y <= 1; y++) lit(cx + x, cy + y, y === 1 ? '#d8e8f4' : '#ffffff');
+        }
+      }
+    }
+    const L = T.light;
+    if (L) for (let y = -8; y <= 8; y++) for (let x = -8; x <= 8; x++) {
+      const d = Math.hypot(x, y);
+      if (d < L.r) lit(L.x + x, L.y + y, d < L.r - 2 ? L.core : L.edge);
+    }
+    // forest floor beyond the lake, then the far treeline
+    for (let y = 46; y < 82; y++) for (let x = 0; x < PW; x++) paint(x, y, (x * 7 + y * 3) % 11 === 0 ? T.floor[1] : T.floor[0]);
+    for (let x = -4; x < PW + 4; x += 2 + Math.floor(rand() * 3)) {
+      const h = 5 + Math.floor(rand() * 8);
+      for (let y = 0; y < h; y++) {
+        const w = Math.floor((y / h) * h * 0.3);
+        for (let dx = -w; dx <= w; dx++) paint(x + dx, 52 - h + y, T.treeline);
+      }
+    }
+    // the lake: an oval clearing in the forest
+    for (let y = LAKE.cy - LAKE.ry; y <= LAKE.cy + LAKE.ry; y++) {
+      const f = (y - (LAKE.cy - LAKE.ry)) / (2 * LAKE.ry);
+      const i = Math.min(T.lake.length - 1, Math.floor(f * T.lake.length));
+      for (let x = LAKE.cx - LAKE.rx; x <= LAKE.cx + LAKE.rx; x++) {
+        if (!inLake(x, y)) continue;
+        const rim = !inLake(x - 2, y) || !inLake(x + 2, y) || !inLake(x, y + 2);
+        paint(x, y, rim ? T.lakeRim : T.lake[i]);
+      }
+    }
+    for (let x = LAKE.cx - LAKE.rx; x <= LAKE.cx + LAKE.rx; x++) {
+      const h = 2 + ((x * 13) % 5);
+      for (let y = 0; y < h; y++) if (inLake(x, 52 + y) && ((x + y) & 1)) paint(x, 52 + y, T.lakeRim);
+    }
+    // dirt clearing in the foreground, with a ragged grass edge
+    const dirt = ['#a07a52', '#956f4a'], dirtGlow = ['#b48a5e', '#aa8257'], dirtHot = ['#c99d68', '#bf945f'];
+    for (let x = 0; x < PW; x++) {
+      const edge = 77 + Math.round(Math.sin(x / 11) * 2 + Math.sin(x / 5 + 2));
+      for (let y = edge; y < PH; y++) {
+        const n = rand();
+        const tone = n < 0.18 ? 1 : 0;
+        const d = Math.hypot(x - FIRE_X, (y - FIRE_Y) * 1.8);
+        let col = dirt[tone];
+        if (T.glow >= 1 && (d < 25 || (d < 33 && (x + y) & 1))) col = dirtGlow[tone];
+        if (T.glow >= 1 && (d < 12 || (d < 17 && (x + y) & 1))) col = dirtHot[tone];
+        if (n > 0.985) col = '#6b5038';
+        paint(x, y, col);
+      }
+      paint(x, edge, '#4a6b3e');
+      if (rand() < 0.5) paint(x, edge + 1, '#4a6b3e');
+      if (rand() < 0.25) paint(x, edge - 1, '#5a7d46');
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = Math.floor(rand() * PW), y = 84 + Math.floor(rand() * 34);
+      if (Math.hypot(x - FIRE_X, (y - FIRE_Y) * 1.8) < 34) continue;
+      if (rand() < 0.6) { paint(x, y, '#5a7d46'); paint(x - 1, y + 1, '#4a6b3e'); paint(x + 1, y + 1, '#4a6b3e'); }
+      else { paint(x, y, '#b0a494', 2, 1); paint(x, y + 1, '#776c5e', 2, 1); }
+    }
+    // pines on both banks so the lake reads as a clearing in the forest
+    const sideTrees = [[3, 80, 62], [15, 78, 44], [25, 76, 28], [118, 74, 24], [132, 76, 34], [215, 80, 66], [182, 74, 30], [33, 75, 18], [110, 73, 17]];
+    for (const [x, base, h] of sideTrees.sort((p, q) => p[1] - q[1])) {
+      if (h >= 34) bigPine(x, base, h, T); else pine(g, x, base, h, T.pine[0], T.pine[1]);
+    }
+
+    paintSauna(T);
+
+    // fire pit stones and logs
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      const x = Math.round(FIRE_X + Math.cos(a) * 10), y = Math.round(FIRE_Y + 2 + Math.sin(a) * 3);
+      paint(x - 2, y - 1, '#3a3a44', 4, 3);
+      paint(x - 1, y - 1, '#7c7c8a', 2, 1);
+    }
+    for (let i = 0; i < 15; i++) {
+      paint(FIRE_X - 8 + i, FIRE_Y + 2 - Math.round(i / 3), '#4a2f1b', 2, 2);
+      paint(FIRE_X + 8 - i, FIRE_Y + 2 - Math.round(i / 3), '#5a3820', 2, 2);
+    }
+
+    paintMask(T);
+  }
+
+  // Barrel sauna after the reference photo: cedar barrel, smooth black roof over the
+  // upper half, planked front with a wide, lit glass door. Small fittings are left out on purpose;
+  // the chimney is not in the photo but is added so it reads as a sauna.
+  // The barrel narrows slightly toward the far end and closes with a rounded cap.
+  function paintSauna(T) {
+    const { cx, cy, r, rb, back } = SAUNA;
+    const wood = ['#d29560', '#c4854f', '#b57647', '#a3693e', '#8f5b35'];
+    const len = back - cx;
+    const radiusAt = x => r - ((x - cx) / len) * (r - rb);
+    const bodyColor = (x, y, rr) => {
+      const top = Math.round(cy - rr), bottom = Math.round(cy + rr);
+      if (y === top) return '#141418';
+      if (y === bottom) return '#4a2a18';
+      if (y < cy) return y === top + 2 ? '#3a3a42' : '#26262b';   // roof membrane, one highlight row
+      if (y === cy) return '#9a9aa2';                               // trim along the roof edge
+      if ((y - cy) % 3 === 0) return '#8a5530';
+      return wood[Math.min(wood.length - 1, Math.floor(((y - cy) / rr) * wood.length))];
+    };
+    // no cradles: the barrel rests on the dirt, with a soft shadow under it
+    for (let x = cx - 6; x <= back + 2; x++) {
+      const y = x <= cx ? cy + r + 1 : cy + Math.round(radiusAt(x)) + 1;
+      paint(x, y, '#6b5038');
+      if ((x & 1) && x > cx - 6 && x < back - 2) paint(x, y + 1, '#6b5038');
+    }
+    // body
+    for (let x = cx; x <= back; x++) {
+      const rr = radiusAt(x);
+      for (let y = Math.round(cy - rr); y <= Math.round(cy + rr); y++) paint(x, y, bodyColor(x, y, rr));
+    }
+    // rounded far cap
+    for (let y = Math.round(cy - rb); y <= Math.round(cy + rb); y++) {
+      const ex = Math.round(4 * Math.sqrt(Math.max(0, 1 - ((y - cy) / rb) ** 2)));
+      for (let i = 1; i <= ex; i++) paint(back + i, y, i === ex ? (y < cy ? '#141418' : '#4a2a18') : bodyColor(back, y, rb));
+      if (ex === 0) paint(back, y, y < cy ? '#141418' : '#4a2a18');
+    }
+    // two saddle feet. Seen from the side, each one's top follows the barrel's round section,
+    // curving down to the 6 o'clock point; the rest runs under the barrel to the hidden side.
+    // Both stand the same 2 px below the barrel, so the far one sits a touch higher on screen.
+    const foot = xc => {
+      const rr = radiusAt(xc), bottom = cy + Math.round(rr), ground = bottom + 2;
+      // toward the near end the top climbs the barrel's round side; toward the far side it stays
+      // against the barrel's underside and runs on out of sight beneath it
+      const topAt = x => x >= xc
+        ? Math.round(cy + rr * Math.sqrt(Math.max(0, 1 - ((x - xc) / 10) ** 2)))
+        : cy + Math.round(radiusAt(x));
+      // flat lower edge; only out at the far end does it lift into the barrel's shadow
+      const groundAt = x => x >= xc ? ground : Math.min(ground, bottom + 4 - Math.round((xc - x) * 0.4));
+      for (let x = xc - 12; x <= xc + 7; x++) {
+        const top = topAt(x), gy = groundAt(x);
+        for (let y = top; y <= gy; y++) {
+          let col = y >= gy - 1 ? '#a3693e' : (y > bottom ? '#b57647' : '#c4854f');
+          if (y === top || y === gy || x === xc + 7) col = '#4a2a18';
+          else if (y === top + 1) col = '#8a5530';            // shade right under the barrel
+          paint(x, y, col);
+        }
+      }
+      // the foot's thickness: its end grain, a flat upright rectangle at the near end
+      const faceTop = topAt(xc + 7);
+      for (let y = faceTop; y <= ground; y++) for (let x = xc + 7; x <= xc + 10; x++) {
+        const edge = y === faceTop || y === ground || x === xc + 7 || x === xc + 10;
+        paint(x, y, edge ? '#4a2a18' : (y === faceTop + 1 ? '#a3693e' : '#8f5b35'));
+      }
+      for (let x = xc - 7; x <= xc + 11; x += 2) paint(x, groundAt(x) + 1, '#6b5038');
+    };
+    foot(176);
+    foot(198);
+    // planked front, seen at an angle: an upright ellipse narrower than the barrel is tall
+    const rx = FRONT_RX;
+    const inFront = (x, y) => (x / rx) ** 2 + (y / r) ** 2 <= 1;
+    for (let y = -r; y <= r; y++) for (let x = -rx; x <= rx; x++) {
+      if (!inFront(x, y)) continue;
+      let col;
+      if (!inFront(x - 1, y) || !inFront(x + 1, y) || !inFront(x, y - 1) || !inFront(x, y + 1)) col = '#4a2a18';
+      else if (!inFront(x - 2, y) || !inFront(x + 2, y) || !inFront(x, y - 2) || !inFront(x, y + 2)) col = '#e0a670';
+      else col = (y + r) % 3 === 0 ? '#9a6038' : ((y + r) % 6 < 3 ? '#c4844f' : '#b97b4a');
+      paint(cx + x, cy + y, col);
+    }
+    // chimney on the roof toward the far end
+    const chBase = Math.round(cy - radiusAt(CHIMNEY_X)) + 1, chTop = chBase - CHIMNEY_H;
+    for (let y = chTop; y <= chBase; y++) { paint(CHIMNEY_X - 1, y, '#3e3c48'); paint(CHIMNEY_X, y, '#6a6a7c', 2, 1); paint(CHIMNEY_X + 2, y, '#3e3c48'); }
+    paint(CHIMNEY_X - 2, chTop - 1, '#2a2a30', 6, 2);
+    // wide glass door in the centre, drawn larger than the real thing; the inside is always lit
+    const dx0 = cx - 6, dx1 = cx + 6, dy0 = cy - 16, dy1 = cy + 17;
+    for (let y = dy0; y <= dy1; y++) for (let x = dx0; x <= dx1; x++) {
+      const frame = x === dx0 || x === dx1 || y === dy0 || y === dy1;
+      if (frame) { paint(x, y, '#e0a670'); continue; }
+      let col = T.door;
+      if (y === cy + 1 || y === cy + 8) col = T.doorHint;       // benches seen through the glass
+      if ((x - y) % 7 === 0 && y < cy - 4) col = '#ffe8b0';
+      lit(x, y, col);
+    }
+    paint(dx0 - 2, cy - 1, '#a3693e', 3, 1);   // wooden pull handle
+    // warm light spilling onto the ground in front of the door
+    if (T.glow >= 2) for (let y = cy + r + 5; y < cy + r + 10; y++) for (let x = dx0 - 2; x <= dx1 + 2; x++) if ((x + y) & 1) lit(x, y, '#b8865a');
+  }
+
+  // Night/dusk shade as one image: full strength away from the fire, fading near it.
+  function paintMask(T) {
+    const m = mask.getContext('2d');
+    m.clearRect(0, 0, PW, PH);
+    if (!T.dark) return;
+    const img = m.createImageData(PW, PH);
+    const rgb = [1, 3, 5].map(i => parseInt(T.shade.slice(i, i + 2), 16));
+    for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
+      if (unshaded[y * PW + x]) continue;
+      const d = Math.hypot(x - FIRE_X, (y - FIRE_Y) * 1.6);
+      let a = T.dark;
+      if (d < 20) a = 0;
+      else if (d < 30) a = T.dark * ((x + y) & 1 ? 0.25 : 0.5);
+      else if (d < 40) a = T.dark * ((x + y) & 1 ? 0.6 : 1);
+      const o = (y * PW + x) * 4;
+      img.data[o] = rgb[0]; img.data[o + 1] = rgb[1]; img.data[o + 2] = rgb[2]; img.data[o + 3] = Math.round(a * 255);
+    }
+    m.putImageData(img, 0, 0);
+  }
+
+  // Day and dusk are each painted once. "auto" moves every pixel's colour from one to the
+  // other in 32 small steps, so the change is too slow to notice from moment to moment.
+  const painted = {};
+  for (const key of ['day', 'dusk']) {
+    theme = THEMES[key];
+    paintBackground();
+    painted[key] = { bg: g.getImageData(0, 0, PW, PH), mask: mask.getContext('2d').getImageData(0, 0, PW, PH) };
+  }
+  const STEPS = 32;
+  let shownLevel = -1;
+  function showMix(level) {   // 0 = day, STEPS = dusk
+    if (level === shownLevel) return;
+    shownLevel = level;
+    const outBg = new ImageData(PW, PH), outMask = new ImageData(PW, PH);
+    const f = level / STEPS, A = painted.day, B = painted.dusk;
+    for (let o = 0; o < PW * PH * 4; o++) {
+      outBg.data[o] = Math.round(A.bg.data[o] + (B.bg.data[o] - A.bg.data[o]) * f);
+      outMask.data[o] = (o & 3) === 3 ? Math.round(B.mask.data[o] * f) : B.mask.data[o];
+    }
+    g.putImageData(outBg, 0, 0);
+    mask.getContext('2d').putImageData(outMask, 0, 0);
+    theme = level < STEPS / 2 ? THEMES.day : THEMES.dusk;   // glints, smoke and speech marks switch halfway
+  }
+  // day for the first 40% of the episode, then evening by 90%
+  const levelAt = progress => Math.round(Math.min(1, Math.max(0, (progress - 0.4) / 0.5)) * STEPS);
+  let timeMode = 'auto';
+  function setTheme(key) {
+    timeMode = ['auto', 'day', 'dusk'].includes(key) ? key : 'auto';
+    if (timeMode !== 'auto') showMix(timeMode === 'day' ? 0 : STEPS);
+    document.querySelectorAll('[data-time]').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.time === timeMode)));
+    try { localStorage.setItem('gaikiyoku-time', timeMode); } catch (e) {}
+  }
+
+  // ---- logo (cream text from the actual logo grid) -----------------------
+  function drawLogo() {
+    LOGO.forEach((row, r) => row.split('').forEach((ch, c) => {
+      if (ch !== 'D') return;
+      px(b, c + 1, 2 + r + 1, '#24264f');
+      px(b, c, 2 + r, '#fffdeb');
+    }));
+  }
+
+  // ---- animated parts (kept few and slow) --------------------------------
+  function drawLake(t) {
+    // glints move once every 1.5 s
+    const r = rng(Math.floor(t / 1.5));
+    for (let i = 0; i < 5; i++) {
+      const x = LAKE.cx - 40 + Math.floor(r() * 80), y = LAKE.cy - 5 + Math.floor(r() * 10);
+      if (inLake(x, y) && inLake(x + 3, y)) px(b, x, y, theme.glint, 2 + Math.floor(r() * 2), 1);
+    }
+    const C = theme.column;
+    if (!C) return;
+    for (let y = LAKE.cy - LAKE.ry + 2; y < LAKE.cy + LAKE.ry - 1; y += 2) {
+      const w = Math.max(1, 5 - Math.floor((y - (LAKE.cy - LAKE.ry)) / 5));
+      const off = Math.round(Math.sin(t * 0.6 + y) * 1);
+      px(b, C.x - w + off, y, C.col, w * 2 - 1, 1);
+    }
+  }
+  // chimney smoke: a puff every ~1.5 s, rising slowly and drifting right
+  const smoke = [];
+  function updateSmoke(dt, t) {
+    if (Math.random() < dt * 0.7) smoke.push({ x: CHIMNEY_X + Math.random() * 2, y: Math.round(SAUNA.cy - SAUNA.rb) - CHIMNEY_H - 3, age: 0, life: 7 + Math.random() * 2 });
+    for (const p of smoke) { p.age += dt; p.y -= dt * 2.4; p.x += dt * (1 + Math.sin(t * 0.4 + p.y * 0.3) * 0.6); }
+    while (smoke.length && smoke[0].age > smoke[0].life) smoke.shift();
+  }
+  function drawSmoke() {
+    for (const p of smoke) {
+      const k = p.age / p.life;
+      const size = k < 0.2 ? 2 : 3;
+      if (k > 0.65 && (Math.floor(p.x) + Math.floor(p.y)) & 1) continue;
+      px(b, p.x, p.y, theme.smoke[k < 0.45 ? 0 : 1], size, size - 1);
+    }
+  }
+  function drawFire(t) {
+    // the flame shape changes three times a second, with small height changes
+    const r = rng(Math.floor(t * 3));
+    for (let x = -6; x <= 6; x++) {
+      const h = Math.max(0, Math.round((7 - Math.abs(x)) * 1.6 + r() * 2.5));
+      for (let y = 0; y < h; y++) {
+        const k = y / h;
+        let col = '#f0602a';
+        if (k < 0.7) col = '#ffb43b';
+        if (k < 0.4 && Math.abs(x) < 4) col = '#fff1a8';
+        px(b, FIRE_X + x, FIRE_Y - 1 - y, col);
+      }
+    }
+  }
+  function drawSpeech(x, y, dir) {
+    // three short ticks fanning out from the mouth side of the face
+    const c = theme.mark;
+    px(b, x, y, c); px(b, x + dir, y - 1, c);
+    px(b, x + dir, y + 3, c); px(b, x + 2 * dir, y + 3, c);
+    px(b, x, y + 6, c); px(b, x + dir, y + 7, c);
+  }
+
+  // ---- talk levels (same as the earlier demo) ----------------------------
+  function makeScript(total) {
+    const segs = [];
+    let t = 0.6, who = 0;
+    while (t < total) {
+      const len = 1.8 + Math.random() * 4.2;
+      segs.push({ who, start: t, end: t + len });
+      if (Math.random() < 0.55) {
+        const at = t + 0.6 + Math.random() * (len - 1);
+        segs.push({ who: 1 - who, start: at, end: at + 0.35 + Math.random() * 0.3 });
+      }
+      t += len + 0.25 + Math.random() * 0.5;
+      who = Math.random() < 0.8 ? 1 - who : who;
+    }
+    return segs;
+  }
+  const SIM_LEN = 48;
+  let script = makeScript(SIM_LEN);
+  function simLevels(t) {
+    const out = [0, 0];
+    for (const s of script) {
+      if (t >= s.start && t < s.end) {
+        const ph = (t - s.start) * (6 + s.who);
+        const syl = Math.max(0, Math.sin(ph * Math.PI * 2) * 0.5 + 0.5 + Math.sin(ph * 1.7) * 0.3);
+        out[s.who] = Math.max(out[s.who], 0.08 + 0.42 * syl);
+      }
+    }
+    return out.map(v => Math.max(0, v + (Math.random() - 0.5) * 0.04));
+  }
+  const chapters = ['（サンプル）オープニング', '（サンプル）最近行ったサウナ', '（サンプル）外気浴の椅子問題', '（サンプル）エンディング'];
+
+  // ---- stage -------------------------------------------------------------
+  const stage = document.getElementById('stage');
+  const sc = stage.getContext('2d');
+  sc.imageSmoothingEnabled = false;
+  const SCALE = stage.width / PW;
+  const thrInput = document.getElementById('threshold');
+  const statusEl = document.getElementById('status');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // window.RENDER (set by the video renderer) drives the stage one frame at a time
+  const RENDER = typeof window !== 'undefined' && window.RENDER;
+  let mode = RENDER ? 'render' : 'sim', simStart = performance.now();
+  let audio = null, analysers = null, abuf = null, audioCtx = null, silentRightSince = null;
+  function audioLevels() {
+    return analysers.map(a => {
+      a.getFloatTimeDomainData(abuf);
+      let sum = 0;
+      for (let i = 0; i < abuf.length; i++) sum += abuf[i] * abuf[i];
+      return Math.min(1, Math.sqrt(sum / abuf.length) * 4);
+    });
+  }
+
+  const playBtn = document.getElementById('play');
+  playBtn.addEventListener('click', () => {
+    if (audio) audio.pause();
+    if (mode === 'sim') { mode = 'idle'; playBtn.textContent = 'サンプル会話を再生'; return; }
+    script = makeScript(SIM_LEN);
+    simStart = performance.now();
+    mode = 'sim';
+    playBtn.textContent = '停止';
+    statusEl.className = 'status';
+    statusEl.textContent = '今流れているのは擬似的な会話データです（音は出ません）。';
+  });
+  document.getElementById('file').addEventListener('change', async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      await audioCtx.resume();
+      if (audio) { audio.pause(); URL.revokeObjectURL(audio.src); }
+      audio = new Audio(URL.createObjectURL(f));
+      const src = audioCtx.createMediaElementSource(audio);
+      const splitter = audioCtx.createChannelSplitter(2);
+      analysers = [audioCtx.createAnalyser(), audioCtx.createAnalyser()];
+      analysers.forEach(a => { a.fftSize = 2048; });
+      abuf = new Float32Array(2048);
+      src.connect(splitter);
+      splitter.connect(analysers[0], 0);
+      splitter.connect(analysers[1], 1);
+      src.connect(audioCtx.destination);
+      await audio.play();
+      mode = 'audio';
+      silentRightSince = performance.now();
+      playBtn.textContent = 'サンプル会話を再生';
+      statusEl.className = 'status';
+      statusEl.textContent = `再生中: ${f.name}`;
+      audio.addEventListener('ended', () => { mode = 'idle'; statusEl.textContent = '再生が終わりました。'; });
+    } catch (err) {
+      statusEl.className = 'status warn';
+      statusEl.textContent = 'このファイルは再生できませんでした。MP3かWAVを選んでください。';
+    }
+  });
+
+  const fa = document.getElementById('fa'), fb = document.getElementById('fb');
+  const ta = document.getElementById('ta'), tb = document.getElementById('tb');
+  const va = document.getElementById('va'), vb = document.getElementById('vb');
+
+  // left = 星川さん (sauna hat, mirrored, faces right), right = 秀竹 as 外気浴くん (as in the logo)
+  const cast = [
+    { grid: HOSHI.hat, mirror: true, ox: 32, headX: 72, dir: 1, lift: HOSHI.hat.length - kun.length },
+    { grid: kun, mirror: false, ox: 89, headX: 112, dir: -1, lift: 0 },
+  ];
+  const OY = 71;
+  const smooth = [0, 0], holdUntil = [0, 0], blinkAt = [2, 3.3];
+  let last = performance.now();
+
+  // sizes are in 1278x720 stage pixels, scaled when the stage is bigger (1917x1080 for video)
+  function drawOverlay(chapter, progress) {
+    const k = SCALE / 6;
+    if (chapter) {
+      sc.font = `${32 * k}px "DotGothic16", monospace`;
+      sc.textBaseline = 'middle';
+      const w = Math.ceil(sc.measureText(chapter).width / SCALE) * SCALE + 36 * k;
+      const x = stage.width - 24 * k - w, y = 20 * k;
+      sc.fillStyle = '#fffdeb';
+      sc.fillRect(x - 6 * k, y - 6 * k, w + 12 * k, 66 * k);
+      sc.fillStyle = '#262636';
+      sc.fillRect(x, y, w, 56 * k);
+      sc.fillStyle = '#fffdeb';
+      sc.fillText(chapter, x + 20 * k, y + 30 * k);
+    }
+    sc.fillStyle = 'rgba(17,16,24,0.6)';
+    sc.fillRect(0, stage.height - 12 * k, stage.width, 12 * k);
+    sc.fillStyle = '#ffc87e';
+    sc.fillRect(0, stage.height - 12 * k, Math.round(stage.width * progress / SCALE) * SCALE, 12 * k);
+  }
+
+  function frame(now) {
+    const t = reduced ? 0 : now / 1000;
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    const thr = +thrInput.value;
+    let levels = [0, 0], progress = 0, chapter = '';
+
+    if (mode === 'sim') {
+      const st = (now - simStart) / 1000;
+      if (st >= SIM_LEN) { simStart = now; script = makeScript(SIM_LEN); }
+      levels = simLevels(st % SIM_LEN);
+      progress = (st % SIM_LEN) / SIM_LEN;
+      chapter = chapters[Math.min(chapters.length - 1, Math.floor(progress * chapters.length))];
+    } else if (mode === 'render') {
+      ({ levels, progress, chapter } = RENDER.input(now));
+    } else if (mode === 'audio' && analysers) {
+      levels = audioLevels();
+      progress = audio.duration ? audio.currentTime / audio.duration : 0;
+      if (levels[1] > 0.01) silentRightSince = null;
+      if (silentRightSince && now - silentRightSince > 4000 && levels[0] > 0.02) {
+        statusEl.className = 'status warn';
+        statusEl.textContent = '右チャンネルが無音です。モノラルのファイルなので、左の星川さんだけが反応しています。';
+        silentRightSince = null;
+      }
+    }
+
+    if (timeMode === 'auto') showMix(levelAt(progress));
+    b.drawImage(bg, 0, 0);
+    drawLake(t);
+    cast.forEach((p, i) => {
+      smooth[i] = smooth[i] * 0.6 + levels[i] * 0.4;
+      const open = smooth[i] > thr;
+      if (open) holdUntil[i] = now + 500;
+      const nt = now / 1000;
+      if (nt > blinkAt[i] + 0.15) blinkAt[i] = nt + 2 + Math.random() * 3;
+      const blink = nt > blinkAt[i] && nt < blinkAt[i] + 0.15;
+      b.drawImage(sprite(p.grid, p.mirror, open, blink), p.ox, OY - p.lift);
+    });
+    b.drawImage(mask, 0, 0);
+    if (!reduced) updateSmoke(dt, t);
+    drawSmoke();
+    cast.forEach((p, i) => { if (now < holdUntil[i]) drawSpeech(p.headX, OY - p.lift + 9, p.dir); });
+    drawFire(t);
+    drawLogo();
+
+    sc.drawImage(buf, 0, 0, stage.width, stage.height);
+    drawOverlay(chapter, progress);
+
+    const pct = v => Math.min(100, v / 0.6 * 100) + '%';
+    fa.style.width = pct(smooth[0]); fb.style.width = pct(smooth[1]);
+    ta.style.left = tb.style.left = pct(thr);
+    va.textContent = smooth[0].toFixed(2); vb.textContent = smooth[1].toFixed(2);
+    if (!RENDER) requestAnimationFrame(frame);
+  }
+  if (RENDER) RENDER.frame = frame;
+  document.querySelectorAll('[data-time]').forEach(btn => btn.addEventListener('click', () => setTheme(btn.dataset.time)));
+  let saved = 'auto';
+  try { saved = localStorage.getItem('gaikiyoku-time') || 'auto'; } catch (e) {}
+  setTheme(RENDER ? 'auto' : saved);
+  if (!RENDER) requestAnimationFrame(frame);
+
+  // ---- sprite sheet ------------------------------------------------------
+  const sheet = document.getElementById('sheet');
+  [
+    [kun, false, false, '秀竹（外気浴くん）'],
+    [kun, false, true, '秀竹・口を開けた絵'],
+    [HOSHI.hat, true, false, '星川'],
+    [HOSHI.hat, true, true, '星川・口を開けた絵'],
+  ].forEach(([grid, mirror, open, label]) => {
+    const fig = document.createElement('figure');
+    const cv = document.createElement('canvas');
+    cv.width = 40 * 6; cv.height = 49 * 6;
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    c.fillStyle = '#fffdeb';
+    c.fillRect(0, 0, cv.width, cv.height);
+    const h = grid.length;   // bottom-aligned, so the taller one stands taller
+    c.drawImage(sprite(grid, mirror, open, false), mirror ? 15 : 9, 0, 40, h, 0, (48 - h) * 6, 240, h * 6);
+    const cap = document.createElement('figcaption');
+    cap.textContent = label;
+    fig.append(cv, cap);
+    sheet.append(fig);
+  });
+})();
+</script>

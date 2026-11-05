@@ -42,6 +42,9 @@ make algolia
 
 # Twitter投稿コンテンツを生成
 make twitter
+
+# 口パク付きドット絵動画（YouTube用）を video/ に書き出し
+make video EP=1
 ```
 
 ## アーキテクチャ

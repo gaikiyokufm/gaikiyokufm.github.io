@@ -20,6 +20,7 @@ exclude:
   - README.md
   - scripts
   - template.md
+  - video
   - vendor
   - whisper_prompt.txt
   - whisper_replacements.tsv
