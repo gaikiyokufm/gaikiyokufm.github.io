@@ -115,6 +115,7 @@ x-check:
 
 
 # 話者分離 → 口パクの開き具合 → 動画の書き出し（出力は video/、git 管理外）
+.PHONY: video
 video:
 	$(eval NUM := $(shell printf "%04d" $(EP)))
 	$(eval AUDIO := audio/gaikiyokufm-$(NUM).mp3)

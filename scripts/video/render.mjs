@@ -8,7 +8,7 @@ import { createCanvas, GlobalFonts, ImageData } from '@napi-rs/canvas';
 const [page, levelsPath, audioPath, outPath, title = '', limit] = process.argv.slice(2);
 GlobalFonts.registerFromPath(new URL('./fonts/DotGothic16-Regular.ttf', import.meta.url).pathname, 'DotGothic16');
 const { fps, duration, frames } = JSON.parse(readFileSync(levelsPath, 'utf8'));
-const W = 213 * 9, H = 120 * 9;   // 1917x1080, padded to 1920 by ffmpeg
+const W = 214 * 9, H = 120 * 9;   // 1926x1080, cropped to 1920 by ffmpeg
 const stage = createCanvas(W, H);
 
 const stub = () => new Proxy({ style: {}, dataset: {}, value: '0.12' }, {
@@ -38,7 +38,7 @@ RENDER.input = now => {
 };
 
 const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${W}x${H}`, '-r', String(fps), '-i', '-',
-  '-i', audioPath, '-map', '0:v', '-map', '1:a', '-map_chapters', '-1', '-map_metadata', '-1', '-t', String(total / fps), '-vf', 'pad=1920:1080:1:0', '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'animation',
+  '-i', audioPath, '-map', '0:v', '-map', '1:a', '-map_chapters', '-1', '-map_metadata', '-1', '-t', String(total / fps), '-vf', 'crop=1920:1080:3:0', '-c:v', 'libx264', '-preset', 'veryfast', '-tune', 'animation',
   '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', outPath], { stdio: ['pipe', 'inherit', 'inherit'] });
 const sc = stage.getContext('2d');
 const started = Date.now();

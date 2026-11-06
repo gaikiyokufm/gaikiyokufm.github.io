@@ -40,7 +40,7 @@ p { margin: 0; max-width: 65ch; }
 header { display: grid; gap: 6px; }
 
 canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
-#stage { width: 100%; max-width: 100%; aspect-ratio: 213 / 120; display: block; background: #24264f; }
+#stage { width: 100%; max-width: 100%; aspect-ratio: 214 / 120; display: block; background: #24264f; }
 
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 button, .file-btn {
@@ -77,7 +77,7 @@ button:focus-visible, .file-btn:focus-within, input:focus-visible { outline: 2px
     <p class="lead">森の中の湖のほとり、バレルサウナの前で焚き火を挟んで外気浴する2人。時間帯は「昼→夕方」が標準で、前半は昼、後半にかけてだんだん夕方になります。下のボタンで昼か夕方に固定もできます。右の秀竹はロゴの外気浴くんを1ドットずつ読み取って、そのまま使っています。左の星川さんは同じ絵柄で少し背を高くし、頭は赤いハットです。</p>
   </header>
 
-  <canvas id="stage" width="1278" height="720" aria-label="湖畔のバレルサウナを背景に、焚き火を挟んで2人が外気浴しながら話すドット絵"></canvas>
+  <canvas id="stage" width="1284" height="720" aria-label="湖畔のバレルサウナを背景に、焚き火を挟んで2人が外気浴しながら話すドット絵"></canvas>
 
   <div class="controls">
     <div class="seg" role="group" aria-label="時間帯">
@@ -203,8 +203,9 @@ const BASE = ["................................................................"
       return ((t ^ t >>> 14) >>> 0) / 4294967296;
     };
   }
-  // 213x120 at 6x: the characters take up more of the frame than in the 256x144 draft.
-  const PW = 213, PH = 120;
+  // 214x120 at 6x: the characters take up more of the frame than in the 256x144 draft.
+  // 214 wide so 9x (1926) crops to 1920 for video; 120 tall is exactly 1080
+  const PW = 214, PH = 120;
   const buf = document.createElement('canvas');
   buf.width = PW; buf.height = PH;
   const b = buf.getContext('2d');
@@ -710,7 +711,7 @@ const BASE = ["................................................................"
   const smooth = [0, 0], holdUntil = [0, 0], blinkAt = [2, 3.3];
   let last = performance.now();
 
-  // sizes are in 1278x720 stage pixels, scaled when the stage is bigger (1917x1080 for video)
+  // sizes are in 6x stage pixels, scaled when the stage is bigger (9x, 1926x1080, for video)
   function drawOverlay(chapter, progress) {
     const k = SCALE / 6;
     if (chapter) {
