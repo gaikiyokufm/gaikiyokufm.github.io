@@ -715,7 +715,10 @@ const BASE = ["................................................................"
   function drawOverlay(chapter, progress) {
     const k = SCALE / 6;
     if (chapter) {
+      // a name too long to clear the logo is set smaller rather than cut
       sc.font = `${32 * k}px "DotGothic16", monospace`;
+      const fit = Math.min(1, (stage.width * 0.66 - 36 * k) / sc.measureText(chapter).width);
+      sc.font = `${Math.floor(32 * k * fit)}px "DotGothic16", monospace`;
       sc.textBaseline = 'middle';
       const w = Math.ceil(sc.measureText(chapter).width / SCALE) * SCALE + 36 * k;
       const x = stage.width - 24 * k - w, y = 20 * k;

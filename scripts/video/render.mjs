@@ -1,13 +1,17 @@
 // Render the pixel-art stage to an mp4: the page's own drawing code runs here under
 // @napi-rs/canvas, one frame per tick, and the frames are piped into ffmpeg.
 // usage: node render.mjs page.html levels.json audio.mp3 out.mp4 "title" [seconds]
+// The overlay shows the audio's current chapter name, or the title when it has none.
 import { readFileSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { createCanvas, GlobalFonts, ImageData } from '@napi-rs/canvas';
 
 const [page, levelsPath, audioPath, outPath, title = '', limit] = process.argv.slice(2);
 GlobalFonts.registerFromPath(new URL('./fonts/DotGothic16-Regular.ttf', import.meta.url).pathname, 'DotGothic16');
 const { fps, duration, frames } = JSON.parse(readFileSync(levelsPath, 'utf8'));
+const chapters = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_chapters', '-of', 'json', audioPath], { encoding: 'utf8' }))
+  .chapters.map(c => ({ start: +c.start_time, name: c.tags?.title || title }));
+const chapterAt = t => chapters.findLast(c => c.start <= t)?.name || title;
 const W = 214 * 9, H = 120 * 9;   // 1926x1080, cropped to 1920 by ffmpeg
 const stage = createCanvas(W, H);
 
@@ -34,7 +38,7 @@ new Function(...Object.keys(ctx), code)(...Object.values(ctx));
 const total = Math.min(frames.length, limit ? Math.round(limit * fps) : Infinity);
 RENDER.input = now => {
   const i = Math.min(frames.length - 1, Math.round(now / 1000 * fps));
-  return { levels: frames[i], progress: now / 1000 / duration, chapter: title };
+  return { levels: frames[i], progress: now / 1000 / duration, chapter: chapterAt(now / 1000) };
 };
 
 const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${W}x${H}`, '-r', String(fps), '-i', '-',
