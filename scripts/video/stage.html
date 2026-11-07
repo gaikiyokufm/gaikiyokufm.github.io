@@ -711,23 +711,49 @@ const BASE = ["................................................................"
   const smooth = [0, 0], holdUntil = [0, 0], blinkAt = [2, 3.3];
   let last = performance.now();
 
+  // one line if it fits, else two of about equal length, broken after a space or a
+  // particle like と/の where one is near the middle; what still overflows is cut with "…"
+  const cutWarned = new Set();
+  function wrapChapter(text, maxW) {
+    const fits = t => sc.measureText(t).width <= maxW;
+    if (fits(text)) return [text];
+    const score = i => Math.abs(i - text.length / 2) - (/[ 、・]/.test(text[i - 1]) ? 4 : /[との]/.test(text[i - 1]) ? 2 : 0);
+    let best = 0;
+    for (let i = 1; i < text.length; i++) {
+      if (fits(text.slice(0, i).trim()) && fits(text.slice(i).trim()) && (!best || score(i) < score(best))) best = i;
+    }
+    if (best) return [text.slice(0, best).trim(), text.slice(best).trim()];
+    let n = text.length;
+    while (n > 1 && !fits(text.slice(0, n))) n--;
+    let last = text.slice(n).trim();
+    while (last && !fits(last + '…')) last = last.slice(0, -1);
+    if (!cutWarned.has(text)) { cutWarned.add(text); console.warn(`chapter name cut: ${text}`); }
+    return [text.slice(0, n).trim(), last.trimEnd() + '…'];
+  }
+
   // sizes are in 6x stage pixels, scaled when the stage is bigger (9x, 1926x1080, for video)
   function drawOverlay(chapter, progress) {
     const k = SCALE / 6;
     if (chapter) {
-      // a name too long to clear the logo is set smaller rather than cut
+      // a name too long to clear the logo is set smaller, down to 75%; past that it
+      // wraps onto a second line, and only what still overflows is cut with "…"
+      const maxW = stage.width * 0.66 - 36 * k;
       sc.font = `${32 * k}px "DotGothic16", monospace`;
-      const fit = Math.min(1, (stage.width * 0.66 - 36 * k) / sc.measureText(chapter).width);
-      sc.font = `${Math.floor(32 * k * fit)}px "DotGothic16", monospace`;
+      const size = Math.floor(32 * k * Math.max(0.75, Math.min(1, maxW / sc.measureText(chapter).width)));
+      sc.font = `${size}px "DotGothic16", monospace`;
+      const lines = wrapChapter(chapter, maxW);
+      const lineH = Math.round(size * 1.4);
       sc.textBaseline = 'middle';
-      const w = Math.ceil(sc.measureText(chapter).width / SCALE) * SCALE + 36 * k;
+      const tw = Math.max(...lines.map(l => sc.measureText(l).width));
+      const w = Math.ceil(tw / SCALE) * SCALE + 36 * k;
+      const h = 24 * k + size + (lines.length - 1) * lineH;
       const x = stage.width - 24 * k - w, y = 20 * k;
       sc.fillStyle = '#fffdeb';
-      sc.fillRect(x - 6 * k, y - 6 * k, w + 12 * k, 66 * k);
+      sc.fillRect(x - 6 * k, y - 6 * k, w + 12 * k, h + 10 * k);
       sc.fillStyle = '#262636';
-      sc.fillRect(x, y, w, 56 * k);
+      sc.fillRect(x, y, w, h);
       sc.fillStyle = '#fffdeb';
-      sc.fillText(chapter, x + 20 * k, y + 30 * k);
+      lines.forEach((l, i) => sc.fillText(l, x + 20 * k, y + 14 * k + size / 2 + i * lineH));
     }
     sc.fillStyle = 'rgba(17,16,24,0.6)';
     sc.fillRect(0, stage.height - 12 * k, stage.width, 12 * k);
